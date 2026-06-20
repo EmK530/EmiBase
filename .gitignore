@@ -1,0 +1,9 @@
+.vscode
+build_temp
+content.epak
+tools/resources.res
+tools/epak_manifest.json
+tools/execute_dll.py
+tools/extra_files/ATTRIBUTIONS.txt
+tools/extra_files/THIRD_PARTY_LICENSES.txt
+EmiBase.exe
