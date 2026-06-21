@@ -5,7 +5,7 @@
 
 typedef struct AudioAsset AudioAsset;
 
-void AudioManager_Init(void);
+int AudioManager_Init(void);
 void AudioManager_Shutdown(void);
 
 AudioAsset* AudioManager_Get(const char* path);

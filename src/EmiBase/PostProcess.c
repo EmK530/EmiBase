@@ -34,10 +34,19 @@
         EndShaderMode();
     }
 
-    void PostProcess_Init(int screenWidth, int screenHeight)
+    int PostProcess_Init(int screenWidth, int screenHeight)
     {
         pingpong[0] = LoadRenderTexture(screenWidth, screenHeight);
         pingpong[1] = LoadRenderTexture(screenWidth, screenHeight);
+
+        if(!IsRenderTextureValid(pingpong[0]) || !IsRenderTextureValid(pingpong[1]))
+        {
+            eprintf("[PostProcess] Failed to init RenderTextures\n");
+            return 0;
+        }
+
+        eprintf("[PostProcess] Ready!\n");
+        return 1;
     }
 
     void PostProcess_Cleanup()
@@ -59,14 +68,14 @@
         if (registryCount < MAX_SCENES) {
             registry[registryCount++] = (SceneShaderList){ .scene = s, .count = 0 };
         } else {
-            fprintf(stderr, "PostProcess: registry full\n");
+            eprintf("[PostProcess] Scene list is full, cannot RegisterScene!\n");
         }
     }
 
     void PostProcess_AddShader(Scene *s, Shader *shader)
     {
         SceneShaderList *list = GetList(s);
-        if (!list) { fprintf(stderr, "PostProcess: scene not registered\n"); return; }
+        if (!list) { eprintf("[PostProcess] Attempted to add a shader to an unregistered scene!\n"); return; }
         if (list->count < MAX_SCENE_SHADERS) {
             list->slots[list->count++] = (ShaderSlot){ .shader = shader, .active = true };
         }
@@ -136,7 +145,7 @@
         EndDrawing();
     }
 #else
-    void PostProcess_Init(int screenWidth, int screenHeight) {}
+    int PostProcess_Init(int screenWidth, int screenHeight) { eprintf("[PostProcess] Module disabled in compilation\n"); }
     void PostProcess_Cleanup() {}
     void PostProcess_Resize(int screenWidth, int screenHeight) {}
     void PostProcess_RegisterScene(Scene *s) {}

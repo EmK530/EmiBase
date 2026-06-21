@@ -11,7 +11,7 @@ void Menu_Init(Scene *s) {
     data->frame_count = 0;
     s->data = data;
 
-    printf("[MenuScene] Initialized\n");
+    eprintf("[MenuScene] Initialized\n");
 }
 
 ERect* source = NULL;
@@ -48,7 +48,7 @@ void Menu_Prepare(Scene *s) {
     o4->core->Size = UDim2_fromOffset(50, 50);
     o4->Color = GREEN;
 
-    printf("[MenuScene] Prepared\n");
+    eprintf("[MenuScene] Prepared\n");
 }
 
 static double time = 0.0;

@@ -1,8 +1,6 @@
-#include "EmiBase/TextureManager.h"
-#include "EmiBase/ContentManager.h"
-
-#include "raylib.h"
 #include <string.h>
+
+#include "EmiBase.h"
 
 // ---------------------------------------------------------------------------
 // Internal cache
@@ -56,8 +54,7 @@ static TextureCacheEntry *Cache_Store(const char *path,
             return &s_cache[i];
         }
     }
-    TraceLog(LOG_WARNING, "TEXTUREMGR: Cache is full (%d entries). '%s' will not be cached.",
-             TEXTURE_CACHE_MAX, path);
+    eprintf("[TextureManager] Cache is full (%d entries). '%s' will not be cached.\n", TEXTURE_CACHE_MAX, path);
     return NULL;
 }
 
@@ -91,14 +88,14 @@ static Texture2D GetTexture(const char *path, TextureFilter filterMode, char cmg
         texture = LoadTexture(path);
     }
     if (texture.id == 0) {
-        TraceLog(LOG_ERROR, "TEXTUREMGR: Failed to load texture '%s'", path);
+        eprintf("[TextureManager] Failed to load texture '%s'\n", path);
         return texture;
     }
 
     ApplyFilter(texture, filterMode);
     Cache_Store(path, texture, filterMode);
 
-    TraceLog(LOG_INFO, "TEXTUREMGR: Loaded and cached '%s' (filter=%s)",
+    eprintf("[TextureManager] Loaded and cached '%s' (filter=%s)",
              path, filterMode == TEXTURE_FILTER_BILINEAR ? "bilinear" : "point");
 
     return texture;
@@ -159,7 +156,7 @@ void TextureManager_Unload(const char *path)
         if (s_cache[i].occupied && strcmp(s_cache[i].path, path) == 0) {
             UnloadTexture(s_cache[i].texture);
             memset(&s_cache[i], 0, sizeof(TextureCacheEntry));
-            TraceLog(LOG_INFO, "TEXTUREMGR: Unloaded '%s'", path);
+            eprintf("[TextureManager] Unloaded '%s'\n", path);
         }
     }
 }
@@ -175,5 +172,5 @@ void TextureManager_UnloadAll(void)
         }
     }
 
-    TraceLog(LOG_INFO, "TEXTUREMGR: Unloaded all cached textures.");
+    eprintf("[TextureManager] Unloaded all cached textures.");
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_SCENES 16
+#define MAX_SCENES 64
 
 typedef enum {
     SCENE_NONE,

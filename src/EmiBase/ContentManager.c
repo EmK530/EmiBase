@@ -1,9 +1,8 @@
-#include "Libraries/WinAPI.h"
-#include "EmiBase/ContentManager.h"
-
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+
+#include "EmiBase.h"
 
 #define SPAK_MAGIC "EPAK"
 #define SFCH_MAGIC "EFCH"
@@ -104,7 +103,7 @@ int ContentManager_Init(const char *pakPath)
 
     if(!gPakFile)
     {
-        TraceLog(LOG_ERROR, "Failed to open pak file");
+        eprintf("[ContentManager] Failed to open pak file\n");
         WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nCould not open the game content file, is it missing?", MB_TOPMOST | MB_ICONERROR);
         return 0;
     }
@@ -116,7 +115,7 @@ int ContentManager_Init(const char *pakPath)
 
     if(memcmp(magic, SPAK_MAGIC, 4) != 0)
     {
-        TraceLog(LOG_ERROR, "Invalid pak header");
+        eprintf("[ContentManager] Invalid pak header\n");
         WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 1)", MB_TOPMOST | MB_ICONERROR);
 
         fclose(gPakFile);
@@ -135,7 +134,7 @@ int ContentManager_Init(const char *pakPath)
 
         if(memcmp(chunkMagic, SFCH_MAGIC, 4) != 0)
         {
-            TraceLog(LOG_ERROR, "Invalid chunk header");
+            eprintf("[ContentManager] Invalid chunk header\n");
             WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 2)", MB_TOPMOST | MB_ICONERROR);
             return 0;
         }
@@ -160,15 +159,11 @@ int ContentManager_Init(const char *pakPath)
         uint32_t actualPathCRC = crc32_compute(path, pathLength);
         if(actualPathCRC != storedPathCRC)
         {
-            TraceLog(LOG_ERROR, "Path CRC mismatch");
-
+            eprintf("[ContentManager] Path CRC mismatch\n");
             WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 3)", MB_TOPMOST | MB_ICONERROR);
-
             MemFree(path);
-
             fclose(gPakFile);
             gPakFile = NULL;
-
             return 0;
         }
 
@@ -186,7 +181,7 @@ int ContentManager_Init(const char *pakPath)
         LinkedList_append(gEntries, entry);
     }
 
-    TraceLog(LOG_INFO, "Loaded %i pak entries", gEntries->size);
+    eprintf("[ContentManager] Loaded %i pak entries\n", gEntries->size);
 
     return 1;
 }
@@ -207,13 +202,13 @@ unsigned char *ContentManager_LoadFile(const char *path, size_t *size)
     ContentEntry *entry = find_entry(path);
     if(!entry)
     {
-        TraceLog(LOG_ERROR, "Missing pak asset: %s", path);
+        eprintf("[ContentManager] Missing pak asset: %s\n", path);
         return NULL;
     }
     unsigned char *data = MemAlloc(entry->size);
     if(!data)
     {
-        TraceLog(LOG_ERROR, "Out of memory loading asset: %s", path);
+        eprintf("[ContentManager] Out of memory loading asset: %s\n", path);
 
         char msg[64];
         snprintf(msg, 64, "Out of memory, ContentManager failed to allocate %i bytes.", entry->size);
@@ -227,7 +222,7 @@ unsigned char *ContentManager_LoadFile(const char *path, size_t *size)
     uint32_t actualCRC = crc32_compute(data, entry->size);
     if(actualCRC != entry->dataCRC)
     {
-        TraceLog(LOG_ERROR, "CRC mismatch for asset '%s' (expected %08X got %08X)", path, entry->dataCRC, actualCRC);
+        eprintf("[ContentManager] CRC mismatch for asset '%s' (expected %08X got %08X)\n", path, entry->dataCRC, actualCRC);
         WinMessageBox("Fatal error!", "EmiBase detected corrupted game content at runtime.\n\nPlease verify the game files.", MB_TOPMOST | MB_ICONERROR);
         MemFree(data);
         CloseWindow();

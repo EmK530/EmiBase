@@ -87,13 +87,13 @@ EObject* EObject_Create(void* generic)
 {
     if(!generic)
     {
-        printf("Received null or invalid generic pointer for EObject_Create\n");
+        eprintf("Received null or invalid generic pointer for EObject_Create\n");
         return NULL;
     }
     EObject* object = (EObject*)MemAlloc(sizeof(EObject));
     if(!object)
     {
-        printf("Out of memory allocating EObject\n");
+        eprintf("Out of memory allocating EObject\n");
         return NULL;
     }
 

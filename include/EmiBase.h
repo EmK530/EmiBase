@@ -24,7 +24,7 @@
     If disabled, all PostProcess functions will be replaced with dummy variants.
 */
 #ifndef SUPPORTS_POSTPROCESS
-    #define SUPPORTS_POSTPROCESS 0
+    #define SUPPORTS_POSTPROCESS 1
 #endif
 
 // Build identifier to display as a suffix to the project name.
@@ -51,10 +51,23 @@
     #define RES_Y 720
 #endif
 
+// Removes all logging made by function calls to eprintf, strings should end up discarded by the compiler.
+#ifndef NO_LOGGING
+    #define NO_LOGGING 1
+#endif
+
 /*
     Determines the filename for ContentManager to load.
     You should probably update pak_builder.py if you change this.
 */
 #define CONTENT_NAME "content.epak"
 
+/* DO NOT EDIT BEYOND THIS POINT */
+
 int EmiBase_Init(int screenWidth, int screenHeight);
+
+#if NO_LOGGING == 0
+    void eprintf(const char* fmt, ...);
+#else
+    #define eprintf(...) ((void)0)
+#endif

@@ -9,5 +9,6 @@ int EmiObject_Init()
     if(root_objects == NULL)
         return 0;
 
+    eprintf("[EmiObject] Ready!\n");
     return 1;
 }

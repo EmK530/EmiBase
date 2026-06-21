@@ -35,7 +35,7 @@ ERect* ERect_Create(EObject* parent)
     ERect* rect = (ERect*)MemAlloc(sizeof(ERect));
     if(!rect)
     {
-        printf("Out of memory allocating ERect\n");
+        eprintf("Out of memory allocating ERect\n");
         return NULL;
     }
 

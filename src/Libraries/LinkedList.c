@@ -1,7 +1,8 @@
-#include "raylib.h"
-#include "Libraries/LinkedList.h"
 #include <stdio.h>
 #include <string.h>
+
+#include "Libraries/LinkedList.h"
+#include "EmiBase.h"
 
 LinkedList* LinkedList_create()
 {
@@ -9,7 +10,7 @@ LinkedList* LinkedList_create()
     memset(newList, 0, sizeof(LinkedList));
     if (!newList)
     {
-        printf("[LinkedList] Allocation error in LinkedList_create\n");
+        eprintf("[LinkedList] Allocation error in LinkedList_create\n");
         return NULL;
     }
     return newList;

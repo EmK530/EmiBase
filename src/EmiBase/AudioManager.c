@@ -1,7 +1,7 @@
-#include "EmiBase/AudioManager.h"
-#include "EmiBase/ContentManager.h"
 #include <string.h>
 #include <stdio.h>
+
+#include "EmiBase.h"
 
 typedef enum {
     AUDIO_SOUND,
@@ -51,14 +51,19 @@ static AudioAsset* Find(const char* path)
 // Core API
 //------------------------------------------------------------
 
-void AudioManager_Init(void)
+int AudioManager_Init(void)
 {
     InitAudioDevice();
+    if(!IsAudioDeviceReady())
+    {
+        eprintf("[AudioManager] Failed to init AudioDevice\n");
+        return 0;
+    }
 
     for (int i = 0; i < MAX_CHANNELS; i++)
-    {
         channels[i].volume = 1.0f;
-    }
+    eprintf("[AudioManager] Ready!\n");
+    return 1;
 }
 
 void AudioManager_Shutdown(void)

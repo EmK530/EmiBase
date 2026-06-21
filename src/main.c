@@ -52,7 +52,7 @@ int main()
 
     int initResult = EmiBase_Init(screenWidth, screenHeight);
     if(initResult != 0) {
-        printf("Could not initialize EmiBase\n");
+        eprintf("Could not initialize EmiBase\n");
         if(initResult == 1) WinMessageBox("Fatal error!", "Could not initialize EmiBase systems!", MB_TOPMOST | MB_ICONERROR);
         return 1;
     }
@@ -63,7 +63,7 @@ int main()
 
     SetTargetFPS(FPS_LIMIT);
 
-    printf("[Main] Ready!\n");
+    eprintf("[Main] Ready!\n");
 
     Scene *start = find_scene("Menu");
 
@@ -117,7 +117,7 @@ int main()
                                 PushScene(new_scene);
                             }
                         } else {
-                            printf("[Main] Failed to jump to nonexistent scene: %s\n", res.name);
+                            eprintf("[Main] Failed to jump to nonexistent scene: %s\n", res.name);
                         }
                     }
                 }
@@ -155,7 +155,7 @@ int main()
                                 PushScene(new_scene);
                             }
                         } else {
-                            printf("[Main] Failed to jump to nonexistent scene: %s\n", res.name);
+                            eprintf("[Main] Failed to jump to nonexistent scene: %s\n", res.name);
                         }
                     }
                 }

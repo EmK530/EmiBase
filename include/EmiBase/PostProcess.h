@@ -16,7 +16,7 @@ typedef struct {
     int      count;
 } SceneShaderList;
 
-void PostProcess_Init(int screenWidth, int screenHeight);
+int PostProcess_Init(int screenWidth, int screenHeight);
 void PostProcess_Cleanup();
 
 void PostProcess_RegisterScene(Scene *s);
