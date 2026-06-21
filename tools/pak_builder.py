@@ -2,6 +2,7 @@ import os
 import json
 import zlib
 import struct
+import hashlib
 from pathlib import Path
 
 ASSETS_DIR = "assets"
@@ -11,6 +12,14 @@ VERSION = 2
 
 ENCRYPT_DATA = False # Should the pak file be encrypted?
 ANTI_CORRUPTION = False # Should ContentManager detect corrupted assets?
+
+def file_hash(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        h.update(f.read())
+    return h.hexdigest()
+
+BUILDER_HASH = file_hash(__file__)
 
 def xorshift32(state: int) -> int:
     state ^= (state << 13) & 0xFFFFFFFF
@@ -50,9 +59,9 @@ def gather_files():
     return files
 
 def build_state(files):
-    state = {}
+    state = {"source": BUILDER_HASH, "files": {}}
     for path in files:
-        state[path] = os.path.getmtime(path)
+        state["files"][path] = os.path.getmtime(path)
     return state
 
 def load_manifest():
