@@ -1,5 +1,4 @@
 #pragma once
-#include "raylib.h"
 #include "SceneUtils.h"
 #include <stdbool.h>
 

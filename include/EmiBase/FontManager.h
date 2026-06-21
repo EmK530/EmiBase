@@ -1,6 +1,6 @@
 #pragma once
 
-#include "raylib.h"
+#include "EmiBase.h"
 
 void FontManager_Init(void);
 void FontManager_Shutdown(void);

@@ -9,6 +9,8 @@ RenderTexture2D target;
 
 int EmiBase_Init()
 {
+    CrashHandler_Init();
+    _crashhandler_internal_sendstatus(2);
     InitWindow(RES_X, RES_Y, PROJECT_NAME " " BUILD_IDENT);
     SetDarkTitleBar();
     if(!IsWindowReady())
@@ -40,6 +42,8 @@ int EmiBase_Init()
         eprintf("[EmiBase] Could not find startup scene: '" STARTUP_SCENE "'\n");
         return 1;
     };
+
+    _crashhandler_internal_sendstatus(0);
 
     return 0;
 }
@@ -108,8 +112,9 @@ void EmiBase_StepScenes()
     for (int i = 0; i <= scene_stack.top; i++) {
         Scene *s = scene_stack.scenes[i];
         if (s && s->WorkEarly) {
-
+            _crashhandler_internal_sendstring(s->name);
             SceneResult res = s->WorkEarly(s, deltaTime);
+            _crashhandler_internal_sendstatus(0);
 
             if (res.action != SCENE_NONE && res.name) {
                 Scene *new_scene = find_scene(res.name);
@@ -129,6 +134,8 @@ void EmiBase_StepScenes()
         }
     }
 
+    _crashhandler_internal_sendstatus(1);
+
     Vector2 res = { (float)screenWidth, (float)screenHeight };
     ETransform root = {
         .Position = {0.0f, 0.0f},
@@ -143,12 +150,14 @@ void EmiBase_StepScenes()
         Recursive_EObject_Draw(object, &root);
     }
 
+    _crashhandler_internal_sendstatus(0);
+
     for (int i = 0; i <= scene_stack.top; i++) {
         Scene *s = scene_stack.scenes[i];
         if (s && s->WorkLate) {
-
+            _crashhandler_internal_sendstring(s->name);
             SceneResult res = s->WorkLate(s, deltaTime);
-
+            _crashhandler_internal_sendstatus(0);
             if (res.action != SCENE_NONE && res.name) {
                 Scene *new_scene = find_scene(res.name);
 

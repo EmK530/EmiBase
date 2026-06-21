@@ -4,6 +4,7 @@
 
 #include "EmiBase/AudioManager.h"
 #include "EmiBase/ContentManager.h"
+#include "EmiBase/CrashHandler.h"
 #include "EmiBase/FontManager.h"
 #include "EmiBase/PostProcess.h"
 #include "EmiBase/SceneUtils.h"

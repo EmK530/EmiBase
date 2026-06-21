@@ -1,5 +1,4 @@
 #pragma once
-#include "raylib.h"
 
 #define MAX_CHANNELS 16
 

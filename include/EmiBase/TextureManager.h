@@ -1,7 +1,5 @@
 #pragma once
 
-#include "raylib.h"
-
 // Draw a texture from a path. Loads and caches on first use.
 // path       - path to image file, relative to working directory
 // position   - top-left position in screen space
