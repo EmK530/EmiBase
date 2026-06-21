@@ -6,7 +6,7 @@ void SetDarkTitleBar(void);
 void WinMessageBox(char* title, char* message, uint32_t type);
 #else
 static inline void SetDarkTitleBar(void) {}
-static inline void WinMessageBox(char* title, char* message, uint32_t type) {}
+#define WinMessageBox(...) ((void)0)
 #endif
 
 #define MB_ABORTRETRYIGNORE 0x00000002L

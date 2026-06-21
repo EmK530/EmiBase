@@ -19,6 +19,11 @@
     #define PROJECT_NAME "EmiBase Engine"
 #endif
 
+// What scene to render on program start, needs to exist or EmiBase will fail to load.
+#ifndef STARTUP_SCENE
+    #define STARTUP_SCENE "Menu"
+#endif
+
 /*
     Compiles EmiBase with a Post Processing wrapper. Breaks software rendering.
     If disabled, all PostProcess functions will be replaced with dummy variants.
@@ -64,7 +69,12 @@
 
 /* DO NOT EDIT BEYOND THIS POINT */
 
-int EmiBase_Init(int screenWidth, int screenHeight);
+int EmiBase_Init();
+void EmiBase_BeginDrawing();
+void EmiBase_EndDrawing(void (*overlay)()); // Run at the end of your frame, overlay can be set to draw topmost graphics unaffected by shading.
+void EmiBase_StepScenes(); // Execute scene code and draw EmiObjects
+void EmiBase_ProcessInput(); // Sends queued input signals to the active scenes.
+void EmiBase_Cleanup();
 
 #if NO_LOGGING == 0
     void eprintf(const char* fmt, ...);
