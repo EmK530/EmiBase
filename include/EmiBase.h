@@ -29,7 +29,7 @@
     If disabled, all PostProcess functions will be replaced with dummy variants.
 */
 #ifndef SUPPORTS_POSTPROCESS
-    #define SUPPORTS_POSTPROCESS 0
+    #define SUPPORTS_POSTPROCESS 1
 #endif
 
 // Build identifier to display as a suffix to the project name.

@@ -6,10 +6,25 @@ typedef struct {
     int frame_count;
 } MenuData;
 
+static Shader crt;
+static Shader shift;
+
 void Menu_Init(Scene *s) {
     MenuData *data = MemAlloc(sizeof(MenuData));
     data->frame_count = 0;
     s->data = data;
+
+    crt = ContentManager_LoadShader(NULL, "shader/crt.glsl");
+    shift = ContentManager_LoadShader(NULL, "shader/shift.glsl");
+
+    PostProcess_RegisterScene(s);
+    if(IsShaderValid(crt)) PostProcess_AddShader(s, &crt);
+    if(IsShaderValid(shift)) {
+        PostProcess_AddShader(s, &shift);
+        int intLoc = GetShaderLocation(shift, "intensity");
+        float intensity = 0.001;
+        if (intLoc != -1) SetShaderValue(shift, intLoc, &intensity, SHADER_UNIFORM_FLOAT);
+    }
 
     eprintf("[MenuScene] Initialized\n");
 }

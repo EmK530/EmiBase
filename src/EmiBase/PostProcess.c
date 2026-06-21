@@ -6,6 +6,7 @@
 
     static SceneShaderList registry[MAX_SCENES];
     static int registryCount = 0;
+    static int frame = 0;
 
     static RenderTexture2D pingpong[2];
 
@@ -20,9 +21,11 @@
     {
         Vector2 res = { w, h };
         int timeLoc = GetShaderLocation(*s, "time");
-        int resLoc  = GetShaderLocation(*s, "resolution");
+        int resLoc = GetShaderLocation(*s, "resolution");
+        int frameLoc = GetShaderLocation(*s, "frame");
         if (timeLoc != -1) SetShaderValue(*s, timeLoc, &time, SHADER_UNIFORM_FLOAT);
-        if (resLoc  != -1) SetShaderValue(*s, resLoc,  &res,  SHADER_UNIFORM_VEC2);
+        if (resLoc != -1) SetShaderValue(*s, resLoc,  &res,  SHADER_UNIFORM_VEC2);
+        if (frameLoc != -1) SetShaderValue(*s, frameLoc,  &frame,  SHADER_UNIFORM_INT);
 
         BeginShaderMode(*s);
             DrawTextureRec(
@@ -61,6 +64,11 @@
         UnloadRenderTexture(pingpong[1]);
         pingpong[0] = LoadRenderTexture(screenWidth, screenHeight);
         pingpong[1] = LoadRenderTexture(screenWidth, screenHeight);
+        if(!IsRenderTextureValid(pingpong[0]) || !IsRenderTextureValid(pingpong[1]))
+        {
+            eprintf("[PostProcess] Runtime error resizing window\n");
+            return;
+        }
     }
 
     void PostProcess_RegisterScene(Scene *s)
@@ -95,6 +103,8 @@
 
     void PostProcess_Apply(RenderTexture2D *sceneTarget, Scene *top, float time, int screenWidth, int screenHeight, void (*overlay)())
     {
+        frame++;
+        
         SceneShaderList *list = top ? GetList(top) : NULL;
 
         // No shaders registered — draw the scene as-is
