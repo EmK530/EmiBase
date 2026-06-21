@@ -60,7 +60,11 @@
 
 // Removes all logging made by function calls to eprintf, strings should end up discarded by the compiler.
 #ifndef NO_LOGGING
-    #define NO_LOGGING 0
+    #ifdef SUB_WINDOWS
+        #define NO_LOGGING 1
+    #else
+        #define NO_LOGGING 0
+    #endif
 #endif
 
 /*

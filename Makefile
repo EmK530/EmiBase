@@ -25,7 +25,8 @@ SRCS := $(wildcard src/*.c) \
 		$(wildcard src/EmiBase/*.c)
 
 CFLAGS_WIN := $(BASE_CFLAGS)
-CFLAGS_WIN_REL := $(CFLAGS_WIN) -mwindows
+CFLAGS_WIN_REL := $(CFLAGS_WIN) -mwindows -DSUB_WINDOWS
+# mwindows disables console and DSUB_WINDOWS disables internal logging!
 
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRCS))
 
@@ -40,8 +41,9 @@ compiledbg: $(OBJS) $(RES_FILE)
 	python tools/pak_builder.py
 	./$(OUT_NAME)
 
+compile: CFLAGS_WIN := $(CFLAGS_WIN_REL)
 compile: $(OBJS) $(RES_FILE)
-	$(CC_WIN) $(CFLAGS_WIN_REL) -o $(OUT_NAME) $^ $(LDFLAGS_WIN) $(LDLIBS)
+	$(CC_WIN) $(CFLAGS_WIN) -o $(OUT_NAME) $^ $(LDFLAGS_WIN) $(LDLIBS)
 	python tools/pak_builder.py
 
 $(OBJ_DIR)/%.o: %.c
