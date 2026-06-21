@@ -94,7 +94,7 @@ void EmiBase_EndDrawing(void (*overlay)())
         EndTextureMode();
         PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, overlay);
 #else
-        DrawOverlay();
+        overlay();
         EndDrawing();
 #endif
 }

@@ -29,7 +29,7 @@
     If disabled, all PostProcess functions will be replaced with dummy variants.
 */
 #ifndef SUPPORTS_POSTPROCESS
-    #define SUPPORTS_POSTPROCESS 1
+    #define SUPPORTS_POSTPROCESS 0
 #endif
 
 // Build identifier to display as a suffix to the project name.
@@ -58,7 +58,7 @@
 
 // Removes all logging made by function calls to eprintf, strings should end up discarded by the compiler.
 #ifndef NO_LOGGING
-    #define NO_LOGGING 1
+    #define NO_LOGGING 0
 #endif
 
 /*
