@@ -14,6 +14,8 @@
 
 #include "raylib.h"
 
+// To configure the pak file in ContentManager, view tools/pak_builder.py
+
 // Project name to display in the game window.
 #ifndef PROJECT_NAME
     #define PROJECT_NAME "EmiBase Engine"

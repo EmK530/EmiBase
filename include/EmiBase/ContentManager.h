@@ -16,8 +16,6 @@ typedef struct
 
     uint32_t pathCRC;
     uint32_t dataCRC;
-
-    uint8_t flags;
 } ContentEntry;
 
 int ContentManager_Init(const char *pakPath);

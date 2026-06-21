@@ -11,6 +11,10 @@
 static FILE *gPakFile = NULL;
 static LinkedList *gEntries = NULL;
 
+// These get modified at runtime
+static bool isEncrypted = false;
+static bool hasCRC = false;
+
 static uint32_t xorshift32(uint32_t state)
 {
     state ^= state << 13;
@@ -35,11 +39,11 @@ static void crypt_buffer(unsigned char *buffer, size_t size, uint32_t fileOffset
     }
 }
 
-static int read_decrypted(void *buffer, size_t size)
+static int read(void *buffer, size_t size)
 {
     long offset = ftell(gPakFile);
     int result = fread(buffer, 1, size, gPakFile);
-    crypt_buffer((unsigned char*)buffer, size, (uint32_t)offset);
+    if(isEncrypted) crypt_buffer((unsigned char*)buffer, size, (uint32_t)offset);
     return result;
 }
 
@@ -111,7 +115,7 @@ int ContentManager_Init(const char *pakPath)
     gEntries = LinkedList_create();
 
     char magic[4];
-    read_decrypted(magic, 4);
+    read(magic, 4);
 
     if(memcmp(magic, SPAK_MAGIC, 4) != 0)
     {
@@ -124,13 +128,31 @@ int ContentManager_Init(const char *pakPath)
         return 0;
     }
 
+    uint8_t version;
+    read(&version, 1);
+
+    if(version != 2)
+    {
+        eprintf("[ContentManager] Invalid pak version\n");
+        WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nUnsupported game content version.", MB_TOPMOST | MB_ICONERROR);
+        return 0;
+    }
+
+    uint8_t flags;
+    read(&flags, 1);
+
+    isEncrypted = (flags & 1) != 0;
+    hasCRC = (flags & 2) != 0;
+
     uint32_t fileCount;
-    read_decrypted(&fileCount, 4);
+    read(&fileCount, 4);
+
+    printf("%i\n", fileCount);
 
     for(uint32_t i = 0; i < fileCount; i++)
     {
         char chunkMagic[4];
-        read_decrypted(chunkMagic, 4);
+        read(chunkMagic, 4);
 
         if(memcmp(chunkMagic, SFCH_MAGIC, 4) != 0)
         {
@@ -139,32 +161,37 @@ int ContentManager_Init(const char *pakPath)
             return 0;
         }
 
-        uint8_t pathLength, flags;
+        uint8_t pathLength;
         uint32_t fileSize;
-        uint32_t storedPathCRC;
-        uint32_t storedDataCRC;
+        uint32_t storedPathCRC = 0;
+        uint32_t storedDataCRC = 0;
 
-        read_decrypted(&pathLength, 1);
-        read_decrypted(&flags, 1);
-        read_decrypted(&fileSize, 4);
-        read_decrypted(&storedPathCRC, 4);
-        read_decrypted(&storedDataCRC, 4);
+        read(&pathLength, 1);
+        read(&fileSize, 4);
+        if(hasCRC)
+        {
+            read(&storedPathCRC, 4);
+            read(&storedDataCRC, 4);
+        }
 
         char *path = MemAlloc(pathLength + 1);
 
-        read_decrypted(path, pathLength);
+        read(path, pathLength);
 
         path[pathLength] = '\0';
 
-        uint32_t actualPathCRC = crc32_compute(path, pathLength);
-        if(actualPathCRC != storedPathCRC)
+        if(hasCRC)
         {
-            eprintf("[ContentManager] Path CRC mismatch\n");
-            WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 3)", MB_TOPMOST | MB_ICONERROR);
-            MemFree(path);
-            fclose(gPakFile);
-            gPakFile = NULL;
-            return 0;
+            uint32_t actualPathCRC = crc32_compute(path, pathLength);
+            if(actualPathCRC != storedPathCRC)
+            {
+                eprintf("[ContentManager] Path CRC mismatch\n");
+                WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 3)", MB_TOPMOST | MB_ICONERROR);
+                MemFree(path);
+                fclose(gPakFile);
+                gPakFile = NULL;
+                return 0;
+            }
         }
 
         ContentEntry *entry = MemAlloc(sizeof(ContentEntry));
@@ -172,7 +199,6 @@ int ContentManager_Init(const char *pakPath)
         entry->path = path;
         entry->dataOffset = (uint32_t)ftell(gPakFile);
         entry->size = fileSize;
-        entry->flags = flags;
         entry->pathCRC = storedPathCRC;
         entry->dataCRC = storedDataCRC;
 
@@ -218,15 +244,18 @@ unsigned char *ContentManager_LoadFile(const char *path, size_t *size)
         return NULL;
     }
     fseek(gPakFile, entry->dataOffset, SEEK_SET);
-    read_decrypted(data, entry->size);
-    uint32_t actualCRC = crc32_compute(data, entry->size);
-    if(actualCRC != entry->dataCRC)
+    read(data, entry->size);
+    if(hasCRC)
     {
-        eprintf("[ContentManager] CRC mismatch for asset '%s' (expected %08X got %08X)\n", path, entry->dataCRC, actualCRC);
-        WinMessageBox("Fatal error!", "EmiBase detected corrupted game content at runtime.\n\nPlease verify the game files.", MB_TOPMOST | MB_ICONERROR);
-        MemFree(data);
-        CloseWindow();
-        return NULL;
+        uint32_t actualCRC = crc32_compute(data, entry->size);
+        if(actualCRC != entry->dataCRC)
+        {
+            eprintf("[ContentManager] CRC mismatch for asset '%s' (expected %08X got %08X)\n", path, entry->dataCRC, actualCRC);
+            WinMessageBox("Fatal error!", "EmiBase detected corrupted game content at runtime.\n\nPlease verify the game files.", MB_TOPMOST | MB_ICONERROR);
+            MemFree(data);
+            CloseWindow();
+            return NULL;
+        }
     }
     if(size)
         *size = entry->size;

@@ -7,6 +7,10 @@ from pathlib import Path
 ASSETS_DIR = "assets"
 OUTPUT_PAK = "content.epak"
 MANIFEST_FILE = "tools/epak_manifest.json"
+VERSION = 2
+
+ENCRYPT_DATA = False # Should the pak file be encrypted?
+ANTI_CORRUPTION = False # Should ContentManager detect corrupted assets?
 
 def xorshift32(state: int) -> int:
     state ^= (state << 13) & 0xFFFFFFFF
@@ -27,10 +31,13 @@ def xor_crypt(data: bytes, start_offset: int) -> bytes:
         out[i] = data[i] ^ random_byte
     return bytes(out)
 
-def write_encrypted(file, data: bytes):
-    offset = file.tell()
-    encrypted = xor_crypt(data, offset)
-    file.write(encrypted)
+def write(file, data: bytes, no_encrypt=False):
+    if ENCRYPT_DATA and not no_encrypt:
+        offset = file.tell()
+        encrypted = xor_crypt(data, offset)
+        file.write(encrypted)
+    else:
+        file.write(data)
 
 def gather_files():
     files = []
@@ -70,8 +77,17 @@ if current_state == previous_state and os.path.isfile(OUTPUT_PAK):
 print("[EPAK] Changes detected, rebuilding pak...")
 
 with open(OUTPUT_PAK, "wb") as pak:
-    write_encrypted(pak, b"EPAK")
-    write_encrypted(pak, struct.pack("<I", len(files)))
+    write(pak, b"EPAK", True)
+    write(pak, struct.pack("<B", VERSION), True)
+
+    flags = 0
+    if ENCRYPT_DATA:
+        flags += 1
+    if ANTI_CORRUPTION:
+        flags += 2
+    write(pak, struct.pack("<B", flags), True)
+
+    write(pak, struct.pack("<I", len(files)))
 
     for path in files:
         pathtoencode = path.replace("assets/","")
@@ -81,31 +97,28 @@ with open(OUTPUT_PAK, "wb") as pak:
 
         with open(path, "rb") as f:
             data = f.read()
-        write_encrypted(pak, b"EFCH")
+        write(pak, b"EFCH")
 
         # Path length (1 byte)
-        write_encrypted(pak, struct.pack("<B", len(path_bytes)))
-
-        # Flags (1 byte)
-        flags = 0
-        write_encrypted(pak, struct.pack("<B", flags))
+        write(pak, struct.pack("<B", len(path_bytes)))
 
         # File size
-        write_encrypted(pak, struct.pack("<I", len(data)))
+        write(pak, struct.pack("<I", len(data)))
 
-        # CRC32 of path
-        path_crc = zlib.crc32(path_bytes) & 0xFFFFFFFF
-        write_encrypted(pak, struct.pack("<I", path_crc))
+        if ANTI_CORRUPTION:
+            # CRC32 of path
+            path_crc = zlib.crc32(path_bytes) & 0xFFFFFFFF
+            write(pak, struct.pack("<I", path_crc))
 
-        # CRC32 of file data
-        data_crc = zlib.crc32(data) & 0xFFFFFFFF
-        write_encrypted(pak, struct.pack("<I", data_crc))
+            # CRC32 of file data
+            data_crc = zlib.crc32(data) & 0xFFFFFFFF
+            write(pak, struct.pack("<I", data_crc))
 
         # Path string
-        write_encrypted(pak, path_bytes)
+        write(pak, path_bytes)
 
         # File data
-        write_encrypted(pak, data)
+        write(pak, data)
 
         print(f"[EPAK] Packed: {path}")
 
