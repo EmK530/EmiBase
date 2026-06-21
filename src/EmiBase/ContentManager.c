@@ -147,8 +147,6 @@ int ContentManager_Init(const char *pakPath)
     uint32_t fileCount;
     read(&fileCount, 4);
 
-    printf("%i\n", fileCount);
-
     for(uint32_t i = 0; i < fileCount; i++)
     {
         char chunkMagic[4];
