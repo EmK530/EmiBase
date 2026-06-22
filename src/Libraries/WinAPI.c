@@ -1,19 +1,13 @@
 #ifdef _WIN32
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <dwmapi.h>
 #include <stdint.h>
-
 #include "Libraries/WinAPI.h"
-
-#pragma comment(lib, "dwmapi.lib")
 
 void SetDarkTitleBar(void)
 {
     HWND hwnd = GetActiveWindow();
 
-    BOOL dark = TRUE;
+    BOOL dark = 1;
 
     // Windows 11 / newer Windows 10
     DwmSetWindowAttribute(hwnd, 20, &dark, sizeof(dark));
@@ -26,12 +20,12 @@ void WinMessageBox(char* title, char* message, uint32_t type)
 
 static CrashHandlerFn g_handler = NULL;
 
-LONG WINAPI InternalCrashHandler(EXCEPTION_POINTERS* info)
+LONG __stdcall InternalCrashHandler(EXCEPTION_POINTERS* info)
 {
     if (g_handler)
         g_handler(info);
 
-    return EXCEPTION_EXECUTE_HANDLER;
+    return 1;
 }
 
 void WinSetUnhandledExceptionFilter(CrashHandlerFn handler)

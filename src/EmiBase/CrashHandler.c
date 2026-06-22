@@ -1,10 +1,7 @@
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <stdio.h>
 
 #include "EmiBase/CrashHandler.h"
 #include "Libraries/WinAPI.h"
-
 
 static const char* DecodeStatus(void* status)
 {
@@ -37,10 +34,7 @@ static const char* ExceptionToString(DWORD code)
 }
 
 
-static void DecodeAccessViolation(
-    EXCEPTION_RECORD* rec,
-    const char** op,
-    void** addr)
+static void DecodeAccessViolation(EXCEPTION_RECORD* rec, const char** op, void** addr)
 {
     ULONG_PTR type = rec->ExceptionInformation[0];
     *addr = (void*)rec->ExceptionInformation[1];
