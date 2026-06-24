@@ -196,6 +196,7 @@ void EmiBase_StepScenes()
                         }
                         else if (res.action == SCENE_REPLACE) {
                             PopScene();          // remove current
+                            EmiObject_Wipe();
                             PushScene(new_scene);
                         }
                     } else {
@@ -210,6 +211,21 @@ void EmiBase_StepScenes()
 void EmiBase_Cleanup()
 {
     PostProcess_Cleanup();
+}
+
+void _emibase_internal_replacescene(Scene* target)
+{
+    SceneStack new_stack = { .top = -1 };
+    scene_stack = new_stack;
+    for(int i = 0; i < MAX_SCENES; i++)
+    {
+        Scene* scene = registered_scenes[i];
+        if(scene == NULL)
+            break;
+        scene->active = false;
+    }
+    EmiObject_Wipe();
+    PushScene(target);
 }
 
 #if NO_LOGGING == 0

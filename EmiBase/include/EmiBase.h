@@ -31,7 +31,7 @@
 
 // What scene to render on program start, needs to exist or EmiBase will fail to load.
 #ifndef STARTUP_SCENE
-    #define STARTUP_SCENE "Menu"
+    #define STARTUP_SCENE "Demo"
 #endif
 
 /*
@@ -104,3 +104,5 @@ void EmiBase_Cleanup();
 #else
     #define eprintf(...) ((void)0)
 #endif
+
+void _emibase_internal_replacescene(Scene* target);

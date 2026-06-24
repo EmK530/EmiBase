@@ -9,6 +9,7 @@ extern LinkedList* root_objects;
 int EmiObject_Init();
 void EmiObject_Draw(int screenWidth, int screenHeight);
 void EmiObject_Deserialize(const char* filePath);
+void EmiObject_Wipe();
 
 #ifndef RELEASE
     /*

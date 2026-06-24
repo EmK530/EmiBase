@@ -21,6 +21,7 @@ typedef struct Scene {
     const SceneResult (*WorkEarly)(struct Scene *s, double deltaTime); // return name of next scene, or NULL
     const SceneResult (*WorkLate)(struct Scene *s, double deltaTime); // return name of next scene, or NULL
     void *misc; // Store anything you want here, you can allocate a struct on the scene-end.
+    bool active;
 } Scene;
 
 #define DEFINE_SCENE_INTERNAL(scene_name) \
@@ -31,7 +32,8 @@ typedef struct Scene {
         .OnInput = scene_name##_OnInput, \
         .WorkEarly = scene_name##_WorkEarly, \
         .WorkLate = scene_name##_WorkLate, \
-        .misc = NULL \
+        .misc = NULL, \
+        .active = false \
     }; \
     void Register_##scene_name() { \
         register_scene(&scene_name##Scene); \

@@ -47,6 +47,29 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
     }
 }
 
+void _emiobject_internal_wipe_recursively(LinkedList* collection, EObject* object)
+{
+    LinkedList_foreach(collection, node)
+    {
+        EObject* child = (EObject*)node->item;
+        _emiobject_internal_wipe_recursively(child->Children, child);
+    }
+    LinkedList_dispose(&collection, NULL);
+    if(object != NULL)
+    {
+        MemFree(object->Name);
+        if(object->_item->_free_func != NULL)
+            object->_item->_free_func(object->_item);
+        MemFree(object);
+    }
+}
+
+void EmiObject_Wipe()
+{
+    _emiobject_internal_wipe_recursively(root_objects, NULL);
+    root_objects = LinkedList_create();
+}
+
 void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
 {
     uint32_t obj_count = BR_ReadU32(reader);

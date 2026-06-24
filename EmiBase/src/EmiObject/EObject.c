@@ -35,9 +35,10 @@ void _eobject_internal_setparent(EObject* ctx, EObject* parent)
     }
 }
 
+extern void _emiobject_internal_wipe_recursively(LinkedList* collection, EObject* object);
 void _eobject_internal_destroy(EObject* ctx)
 {
-    (void)ctx;
+    _emiobject_internal_wipe_recursively(ctx->Children, ctx);
 }
 
 void _eobject_internal_setname(EObject* ctx, char* name)

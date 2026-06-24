@@ -1,4 +1,4 @@
-#define SCENE_NAME Menu
+#define SCENE_NAME Demo
 #include "EmiBase.h"
 
 static Shader crt;
