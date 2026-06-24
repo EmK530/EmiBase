@@ -4,6 +4,10 @@
 #include "EmiBase.h"
 #include "EmiBase/CrashHandler.h"
 
+#ifndef RELEASE
+    #include "EmiBase/NuklearUI.h"
+#endif
+
 #if SUPPORTS_POSTPROCESS == 1
 RenderTexture2D target;
 #endif
@@ -15,7 +19,7 @@ int EmiBase_Init()
     CrashHandler_Init();
     _crashhandler_internal_sendstatus(2);
     if(!ContentManager_Init(CONTENT_NAME)) return 2;
-    InitWindow(RES_X, RES_Y, PROJECT_NAME " " BUILD_IDENT);
+    InitWindow(RES_X, RES_Y, PROJECT_NAME " " PROJECT_VER);
     SetDarkTitleBar();
     if(!IsWindowReady())
     {
@@ -49,6 +53,16 @@ int EmiBase_Init()
         return 2;
     };
 
+    _crashhandler_internal_sendstatus(3);
+
+#ifndef RELEASE
+    if(!NuklearUI_Init())
+    {
+        eprintf("[EmiBase] Failed to initialize Nuklear UI.\n");
+        WinMessageBox("Fatal error!", "Failed to initialize Nuklear UI.", MB_TOPMOST | MB_ICONERROR);
+    }
+#endif
+
     _crashhandler_internal_sendstatus(0);
 
     return 0;
@@ -81,19 +95,41 @@ void EmiBase_BeginDrawing()
 #endif
 }
 
-void EmiBase_EndDrawing(void (*overlay)())
-{
-    AudioManager_Update();
-#if SUPPORTS_POSTPROCESS == 1
-        int screenWidth = GetScreenWidth();
-        int screenHeight = GetScreenHeight();
-        EndTextureMode();
-        PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, overlay);
+#ifndef RELEASE
+    void (*overlayRemember)() = NULL;
+    void doubleDraw() { overlayRemember(); _crashhandler_internal_sendstatus(4); NuklearUI_Draw(); _crashhandler_internal_sendstatus(0); }
+    void EmiBase_EndDrawing(void (*overlay)())
+    {
+        AudioManager_Update();
+    #if SUPPORTS_POSTPROCESS == 1
+            int screenWidth = GetScreenWidth();
+            int screenHeight = GetScreenHeight();
+            EndTextureMode();
+            overlayRemember = overlay;
+            PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, doubleDraw);
+    #else
+            overlay();
+            _crashhandler_internal_sendstatus(4);
+            NuklearUI_Draw();
+            _crashhandler_internal_sendstatus(0);
+            EndDrawing();
+    #endif
+    }
 #else
-        overlay();
-        EndDrawing();
+    void EmiBase_EndDrawing(void (*overlay)())
+    {
+        AudioManager_Update();
+    #if SUPPORTS_POSTPROCESS == 1
+            int screenWidth = GetScreenWidth();
+            int screenHeight = GetScreenHeight();
+            EndTextureMode();
+            PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, overlay);
+    #else
+            overlay();
+            EndDrawing();
+    #endif
+    }
 #endif
-}
 
 void EmiBase_StepScenes()
 {

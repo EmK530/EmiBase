@@ -13,6 +13,10 @@ static const char* DecodeStatus(void* status)
             return "while drawing EmiObjects.";
         case 2:
             return "during initialization.";
+        case 3:
+            return "while initializing Nuklear UI";
+        case 4:
+            return "while drawing Nuklear UI";
     }
     if((size_t)status < 255)
         return "for an unknown reason.";

@@ -1,0 +1,3 @@
+[submodule "EmiBase/external/raylib-nuklear"]
+	path = EmiBase/external/raylib-nuklear
+	url = https://github.com/RobLoach/raylib-nuklear.git

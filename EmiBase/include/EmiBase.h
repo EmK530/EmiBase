@@ -18,7 +18,11 @@
 
 // Project name to display in the game window.
 #ifndef PROJECT_NAME
-    #define PROJECT_NAME "EmiBase Engine"
+    #define PROJECT_NAME "Example Project"
+#endif
+
+#ifndef PROJECT_VER
+    #define PROJECT_VER "v0.0.0"
 #endif
 
 // What scene to render on program start, needs to exist or EmiBase will fail to load.
@@ -32,15 +36,6 @@
 */
 #ifndef SUPPORTS_POSTPROCESS
     #define SUPPORTS_POSTPROCESS 1
-#endif
-
-// Build identifier to display as a suffix to the project name.
-#ifndef BUILD_IDENT
-    #if SUPPORTS_POSTPROCESS == 1
-        #define BUILD_IDENT "[dev]"
-    #else
-        #define BUILD_IDENT "[dev:P0]"
-    #endif
 #endif
 
 // I mean, this one is pretty straightforward.
@@ -89,6 +84,12 @@ void EmiBase_Cleanup();
     void EmiObject_Serialize();
 #else
     static inline void EmiObject_Serialize() {}
+#endif
+
+#define EMIBASE_VER "v0.0.0"
+
+#ifndef GIT_HASH
+    #define GIT_HASH "00000000"
 #endif
 
 #if NO_LOGGING == 0

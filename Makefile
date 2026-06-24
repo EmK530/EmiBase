@@ -1,6 +1,7 @@
 CC_WIN = C:\\raylib\\w64devkit\\bin\\gcc
 
-BASE_CFLAGS = -O2 -s -IEmiBase/include -IGame/include
+BASE_CFLAGS = -O0 -s -IEmiBase/include -IGame/include -IEmiBase/external/raylib-nuklear/include
+BASE_CFLAGS += -DGIT_HASH=\"$(shell git rev-parse --short HEAD)\"
 
 RAYLIB_SRC_PATH       ?= C:\\raylib\\raylib\\src
 RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_SRC_PATH)
@@ -33,6 +34,8 @@ CFLAGS_WIN_REL := $(CFLAGS_WIN) -mwindows -DSUB_WINDOWS -DRELEASE
 # mwindows disables console and DSUB_WINDOWS disables internal logging!
 
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRCS))
+
+MAKEFLAGS += -j32
 
 .PHONY: all clean upx
 

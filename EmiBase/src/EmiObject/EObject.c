@@ -49,7 +49,6 @@ void _eobject_internal_setname(EObject* ctx, char* name)
         ctx->Name = NULL;
         return;
     }
-
     size_t len = strlen(name);
     if(len > 255) // Serialization limits
         return;
@@ -61,10 +60,12 @@ void _eobject_internal_setname(EObject* ctx, char* name)
         return;
     }
     char* newname = MemAlloc(len + 1);
+    if(!newname)
+        return;
     strncpy(newname, name, len);
     if(ctx->Name != NULL)
         MemFree(ctx->Name);
-    ctx->Name = name;
+    ctx->Name = newname;
 }
 
 void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
