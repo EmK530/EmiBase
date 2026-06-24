@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #define SCENE_NAME Menu
 #include "EmiBase.h"
 

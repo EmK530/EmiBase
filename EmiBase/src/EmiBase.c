@@ -118,7 +118,7 @@ void EmiBase_StepScenes()
                         PushScene(new_scene);
                     }
                 } else {
-                    eprintf("[Main] Failed to jump to nonexistent scene: %s\n", res.name);
+                    eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
                 }
             }
         }
@@ -148,7 +148,7 @@ void EmiBase_StepScenes()
                         PushScene(new_scene);
                     }
                 } else {
-                    eprintf("[Main] Failed to jump to nonexistent scene: %s\n", res.name);
+                    eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
                 }
             }
         }

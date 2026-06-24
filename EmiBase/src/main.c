@@ -28,7 +28,7 @@ int EmiMain()
         return 1;
     }
 
-    eprintf("[Main] Ready!\n");
+    eprintf("[EmiBase] Initialized!\n");
 
     while (!WindowShouldClose())
     {

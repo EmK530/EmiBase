@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #define SCENE_NAME Blank
 #include "EmiBase.h"
 
