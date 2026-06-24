@@ -7,6 +7,12 @@
 
 struct nk_context *ctx = NULL;
 
+bool nk_workEarly = 0;
+bool nk_emiObject = 0;
+bool nk_workLate = 0;
+bool nk_postProcess = 0;
+bool nk_overlay = 0;
+
 int NuklearUI_Init()
 {
     ctx = InitNuklear(10);
@@ -53,17 +59,34 @@ void NuklearUI_Draw()
         nk_rect(0, 0, w, 20),
         NK_WINDOW_NO_SCROLLBAR))
     {
-        nk_layout_row_begin(ctx, NK_STATIC, 20, 2);
+        nk_layout_row_begin(ctx, NK_STATIC, 20, 3);
 
-        /* LEFT SIDE (menu) */
-        nk_layout_row_push(ctx, 32);
-
-        if (nk_menu_begin_label(ctx, "View", NK_TEXT_LEFT, nk_vec2(180, 200)))
+        nk_layout_row_push(ctx, 28);
+        if (nk_menu_begin_label(ctx, "File", NK_TEXT_LEFT, nk_vec2(140, 200)))
         {
             nk_layout_row_dynamic(ctx, 18, 1);
 
-            nk_menu_item_label(ctx, "Test Button 1", NK_TEXT_LEFT);
-            nk_menu_item_label(ctx, "Test Button 2", NK_TEXT_LEFT);
+            if(nk_menu_item_label(ctx, "Save Workspace To File", NK_TEXT_LEFT))
+                EmiObject_Serialize();
+            nk_layout_row_dynamic(ctx, 4, 1);
+            nk_label(ctx, "", NK_TEXT_LEFT);
+
+            nk_menu_end(ctx);
+        }
+
+        nk_layout_row_push(ctx, 50);
+        if (nk_menu_begin_label(ctx, "Toggles", NK_TEXT_LEFT, nk_vec2(140, 200)))
+        {
+            nk_layout_row_dynamic(ctx, 18, 1);
+
+            nk_checkbox_label(ctx, "WorkEarly", &nk_workEarly);
+            nk_checkbox_label(ctx, "EmiObject", &nk_emiObject);
+            nk_checkbox_label(ctx, "WorkLate", &nk_workLate);
+#if SUPPORTS_POSTPROCESS == 1
+            nk_checkbox_label(ctx, "PostProcess", &nk_postProcess);
+#endif
+            nk_checkbox_label(ctx, "Overlay", &nk_overlay);
+
             nk_layout_row_dynamic(ctx, 4, 1);
             nk_label(ctx, "", NK_TEXT_LEFT);
 
@@ -71,7 +94,7 @@ void NuklearUI_Draw()
         }
 
         /* RIGHT SIDE */
-        nk_layout_row_push(ctx, w - 36);
+        nk_layout_row_push(ctx, w - 82);
 
         nk_label(ctx, "EmiBase " EMIBASE_VER " (" GIT_HASH GIT_DIRTY ") | " PROJECT_NAME " " PROJECT_VER, NK_TEXT_RIGHT);
 

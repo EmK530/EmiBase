@@ -97,7 +97,13 @@ void EmiBase_BeginDrawing()
 
 #ifndef RELEASE
     void (*overlayRemember)() = NULL;
-    void doubleDraw() { overlayRemember(); _crashhandler_internal_sendstatus(4); NuklearUI_Draw(); _crashhandler_internal_sendstatus(0); }
+    void doubleDraw() {
+        if(nk_overlay == 0)
+            overlayRemember();
+        _crashhandler_internal_sendstatus(4);
+        NuklearUI_Draw();
+        _crashhandler_internal_sendstatus(0);
+    }
     void EmiBase_EndDrawing(void (*overlay)())
     {
         AudioManager_Update();
@@ -108,7 +114,8 @@ void EmiBase_BeginDrawing()
             overlayRemember = overlay;
             PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, doubleDraw);
     #else
-            overlay();
+            if(nk_overlay == 0)
+                overlay();
             _crashhandler_internal_sendstatus(4);
             NuklearUI_Draw();
             _crashhandler_internal_sendstatus(0);
@@ -137,26 +144,29 @@ void EmiBase_StepScenes()
     int screenWidth = GetScreenWidth();
     int screenHeight = GetScreenHeight();
 
-    for (int i = 0; i <= scene_stack.top; i++) {
-        Scene *s = scene_stack.scenes[i];
-        if (s && s->WorkEarly) {
-            _crashhandler_internal_sendstring(s->name);
-            SceneResult res = s->WorkEarly(s, deltaTime);
-            _crashhandler_internal_sendstatus(0);
+    if(nk_workEarly == 0)
+    {
+        for (int i = 0; i <= scene_stack.top; i++) {
+            Scene *s = scene_stack.scenes[i];
+            if (s && s->WorkEarly) {
+                _crashhandler_internal_sendstring(s->name);
+                SceneResult res = s->WorkEarly(s, deltaTime);
+                _crashhandler_internal_sendstatus(0);
 
-            if (res.action != SCENE_NONE && res.name) {
-                Scene *new_scene = find_scene(res.name);
+                if (res.action != SCENE_NONE && res.name) {
+                    Scene *new_scene = find_scene(res.name);
 
-                if (new_scene) {
-                    if (res.action == SCENE_PUSH) {
-                        PushScene(new_scene);
+                    if (new_scene) {
+                        if (res.action == SCENE_PUSH) {
+                            PushScene(new_scene);
+                        }
+                        else if (res.action == SCENE_REPLACE) {
+                            PopScene(); // remove current
+                            PushScene(new_scene);
+                        }
+                    } else {
+                        eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
                     }
-                    else if (res.action == SCENE_REPLACE) {
-                        PopScene(); // remove current
-                        PushScene(new_scene);
-                    }
-                } else {
-                    eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
                 }
             }
         }
@@ -164,29 +174,33 @@ void EmiBase_StepScenes()
 
     _crashhandler_internal_sendstatus(1);
 
-    EmiObject_Draw(screenWidth, screenHeight);
+    if(nk_emiObject == 0)
+        EmiObject_Draw(screenWidth, screenHeight);
 
     _crashhandler_internal_sendstatus(0);
 
-    for (int i = 0; i <= scene_stack.top; i++) {
-        Scene *s = scene_stack.scenes[i];
-        if (s && s->WorkLate) {
-            _crashhandler_internal_sendstring(s->name);
-            SceneResult res = s->WorkLate(s, deltaTime);
-            _crashhandler_internal_sendstatus(0);
-            if (res.action != SCENE_NONE && res.name) {
-                Scene *new_scene = find_scene(res.name);
+    if(nk_workLate == 0)
+    {
+        for (int i = 0; i <= scene_stack.top; i++) {
+            Scene *s = scene_stack.scenes[i];
+            if (s && s->WorkLate) {
+                _crashhandler_internal_sendstring(s->name);
+                SceneResult res = s->WorkLate(s, deltaTime);
+                _crashhandler_internal_sendstatus(0);
+                if (res.action != SCENE_NONE && res.name) {
+                    Scene *new_scene = find_scene(res.name);
 
-                if (new_scene) {
-                    if (res.action == SCENE_PUSH) {
-                        PushScene(new_scene);
+                    if (new_scene) {
+                        if (res.action == SCENE_PUSH) {
+                            PushScene(new_scene);
+                        }
+                        else if (res.action == SCENE_REPLACE) {
+                            PopScene();          // remove current
+                            PushScene(new_scene);
+                        }
+                    } else {
+                        eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
                     }
-                    else if (res.action == SCENE_REPLACE) {
-                        PopScene();          // remove current
-                        PushScene(new_scene);
-                    }
-                } else {
-                    eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
                 }
             }
         }

@@ -1,4 +1,6 @@
 #include "EmiBase.h"
+#include "EmiBase/NuklearUI.h"
+
 #include <stdio.h>
 
 #if SUPPORTS_POSTPROCESS == 1
@@ -136,19 +138,29 @@
         BeginDrawing();
         ClearBackground(BLACK);
 
-        for (int i = 0; i < passCount; i++) {
-            bool isLast = (i == passCount - 1);
+        if(nk_postProcess == 0)
+        {
+            for (int i = 0; i < passCount; i++) {
+                bool isLast = (i == passCount - 1);
 
-            if (isLast) {
-                ApplyPass(passes[i], src, time, screenWidth, screenHeight);
-            } else {
-                BeginTextureMode(pingpong[ppIndex]);
-                    ClearBackground(BLACK);
+                if (isLast) {
                     ApplyPass(passes[i], src, time, screenWidth, screenHeight);
-                EndTextureMode();
-                src = &pingpong[ppIndex];
-                ppIndex = 1 - ppIndex;
+                } else {
+                    BeginTextureMode(pingpong[ppIndex]);
+                        ClearBackground(BLACK);
+                        ApplyPass(passes[i], src, time, screenWidth, screenHeight);
+                    EndTextureMode();
+                    src = &pingpong[ppIndex];
+                    ppIndex = 1 - ppIndex;
+                }
             }
+        } else {
+            DrawTextureRec(
+                src->texture,
+                (Rectangle){ 0, 0, src->texture.width, -src->texture.height },
+                (Vector2){ 0, 0 },
+                WHITE
+            );
         }
 
         if (overlay) overlay();

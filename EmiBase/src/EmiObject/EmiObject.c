@@ -139,6 +139,6 @@ void EmiObject_Deserialize(const char* filePath)
             EObject* object = (EObject*)obj->item;
             _internal_serialize_recursively(writer, NULL, object);
         }
-        BW_SaveToFile(writer, "output.eobj");
+        BW_SaveToFile(writer, "Workspace.eobj");
     }
 #endif
