@@ -55,6 +55,7 @@ ERect* ERect_Create(EObject* parent)
 #endif
     rect->core->SetName(rect->core, "ERect");
     
+    rect->innerType = 1;
     rect->Color.r = 255;
     rect->Color.g = 255;
     rect->Color.b = 255;

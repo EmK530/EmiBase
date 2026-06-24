@@ -25,6 +25,10 @@
     #define PROJECT_VER "v0.0.0"
 #endif
 
+#ifndef WINDOW_TITLE
+    #define WINDOW_TITLE "Example Project"
+#endif
+
 // What scene to render on program start, needs to exist or EmiBase will fail to load.
 #ifndef STARTUP_SCENE
     #define STARTUP_SCENE "Menu"
@@ -90,6 +94,9 @@ void EmiBase_Cleanup();
 
 #ifndef GIT_HASH
     #define GIT_HASH "00000000"
+#endif
+#ifndef GIT_DIRTY
+    #define GIT_DIRTY ""
 #endif
 
 #if NO_LOGGING == 0

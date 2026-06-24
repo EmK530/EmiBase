@@ -30,6 +30,7 @@ typedef struct
 struct EGeneric
 {
     EObject* core; // Access the root EmiObject properties through this reference
+    uint8_t innerType; // Internal type ID for NuklearUI, do not modify
     void (*Render)(EGeneric* self, ETransform* t); // Internal render function, do not invoke
     void (*_free_func)(EGeneric* self); // Internal free function, do not invoke
 #ifndef RELEASE
