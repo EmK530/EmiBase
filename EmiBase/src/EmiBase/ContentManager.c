@@ -234,11 +234,12 @@ unsigned char *ContentManager_LoadFile(const char *path, size_t *size)
     {
         eprintf("[ContentManager] Out of memory loading asset: %s\n", path);
 
-        char msg[64];
-        snprintf(msg, 64, "Out of memory, ContentManager failed to allocate %i bytes.", entry->size);
+        char msg[67];
+        snprintf(msg, 67, "Out of memory, ContentManager failed to allocate %i bytes.", entry->size);
         WinMessageBox("Fatal error!", msg, MB_TOPMOST | MB_ICONERROR);
-
         CloseWindow();
+        WinExitProcess(1);
+        
         return NULL;
     }
     fseek(gPakFile, entry->dataOffset, SEEK_SET);
@@ -252,6 +253,7 @@ unsigned char *ContentManager_LoadFile(const char *path, size_t *size)
             WinMessageBox("Fatal error!", "EmiBase detected corrupted game content at runtime.\n\nPlease verify the game files.", MB_TOPMOST | MB_ICONERROR);
             MemFree(data);
             CloseWindow();
+            WinExitProcess(1);
             return NULL;
         }
     }

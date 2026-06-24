@@ -28,6 +28,7 @@ struct EGeneric
     EObject* core; // Access the root EmiObject properties through this reference
     void (*Render)(EGeneric* self, ETransform* t); // Internal render function, do not invoke
     void (*free_func)(EGeneric* self); // Internal free function, do not invoke
+    void (*serialize_func)(EGeneric* self); // Internal serialize function, do not invoke
 };
 
 struct EObject

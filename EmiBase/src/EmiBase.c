@@ -11,6 +11,7 @@ int EmiBase_Init()
 {
     CrashHandler_Init();
     _crashhandler_internal_sendstatus(2);
+    if(!ContentManager_Init(CONTENT_NAME)) return 2;
     InitWindow(RES_X, RES_Y, PROJECT_NAME " " BUILD_IDENT);
     SetDarkTitleBar();
     if(!IsWindowReady())
@@ -19,7 +20,6 @@ int EmiBase_Init()
         WinMessageBox("Fatal error!", "Failed to create a game window.", MB_TOPMOST | MB_ICONERROR);
         return 2;
     }
-    if(!ContentManager_Init(CONTENT_NAME)) return 2;
     if(!EmiObject_Init()) return 1;
     if(!PostProcess_Init(RES_X, RES_Y)) return 1;
     if(!AudioManager_Init()) return 1;
@@ -46,20 +46,6 @@ int EmiBase_Init()
     _crashhandler_internal_sendstatus(0);
 
     return 0;
-}
-
-// Draw EObjects recursively
-void Recursive_EObject_Draw(EObject* object, ETransform* parent)
-{
-    ETransform current;
-
-    object->_render(object, parent, &current);
-
-    LinkedList_foreach(object->Children, child)
-    {
-        EObject* co = (EObject*)child->item;
-        Recursive_EObject_Draw(co, &current);
-    }
 }
 
 void EmiBase_ProcessInput()
@@ -136,19 +122,7 @@ void EmiBase_StepScenes()
 
     _crashhandler_internal_sendstatus(1);
 
-    Vector2 res = { (float)screenWidth, (float)screenHeight };
-    ETransform root = {
-        .Position = {0.0f, 0.0f},
-        .Size     = {res.x, res.y},
-        .Rotation = 0.0f,
-        .Anchor   = {0.0f, 0.0f}
-    };
-
-    LinkedList_foreach(root_objects, obj)
-    {
-        EObject *object = (EObject *)obj->item;
-        Recursive_EObject_Draw(object, &root);
-    }
+    EmiObject_Draw(screenWidth, screenHeight);
 
     _crashhandler_internal_sendstatus(0);
 

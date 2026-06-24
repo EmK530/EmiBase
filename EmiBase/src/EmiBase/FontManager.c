@@ -83,10 +83,7 @@ Font* FontManager_GetFont(const char* path, int size)
     return &a->font;
 }
 
-void FontManager_DrawText(const char* path, int size,
-                          const char* text,
-                          Vector2 position,
-                          Color color)
+void FontManager_DrawText(const char* path, int size, const char* text, Vector2 position, Color color)
 {
     Font* font = FontManager_GetFont(path, size);
 

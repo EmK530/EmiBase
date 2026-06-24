@@ -34,4 +34,9 @@ void WinSetUnhandledExceptionFilter(CrashHandlerFn handler)
     SetUnhandledExceptionFilter(InternalCrashHandler);
 }
 
+void WinExitProcess(UINT code)
+{
+    ExitProcess(code);
+}
+
 #endif

@@ -29,6 +29,9 @@
         CONTEXT* ContextRecord;
     } EXCEPTION_POINTERS;
 
+    __declspec(dllimport)
+    void __stdcall ExitProcess(UINT uExitCode);
+
     HWND __stdcall GetActiveWindow(void);
     int __stdcall MessageBoxA(HWND hWnd, const char* lpText, const char* lpCaption, UINT uType);
     LONG __stdcall DwmSetWindowAttribute(HWND hwnd, UINT dwAttribute, const void* pvAttribute, UINT cbAttribute);
@@ -37,10 +40,12 @@
     void SetDarkTitleBar(void);
     void WinMessageBox(char* title, char* message, uint32_t type);
     void WinSetUnhandledExceptionFilter(CrashHandlerFn handler);
+    void WinExitProcess(UINT code);
 #else
     static inline void SetDarkTitleBar(void) {}
     #define WinMessageBox(...) ((void)0)
     static inline void WinSetUnhandledExceptionFilter(CrashHandlerFn handler) {}
+    static inline void WinExitProcess(UINT code) {}
 #endif
 
 #ifndef NULL

@@ -83,6 +83,12 @@ void EmiBase_StepScenes(); // Execute scene code and draw EmiObjects
 void EmiBase_ProcessInput(); // Sends queued input signals to the active scenes.
 void EmiBase_Cleanup();
 
+#ifndef RELEASE
+    void EmiObject_Serialize();
+#else
+    static inline void EmiObject_Serialize() {}
+#endif
+
 #if NO_LOGGING == 0
     void eprintf(const char* fmt, ...);
 #else

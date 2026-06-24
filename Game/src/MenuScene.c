@@ -63,6 +63,8 @@ void Menu_Prepare(Scene *s) {
     o4->core->Size = UDim2_fromOffset(50, 50);
     o4->Color = GREEN;
 
+    EmiObject_Serialize();
+
     eprintf("[MenuScene] Prepared\n");
 }
 

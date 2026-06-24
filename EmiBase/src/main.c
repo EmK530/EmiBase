@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "raylib.h"
-#include "rlgl.h"
 #include "EmiBase.h"
 
 static void DrawOverlay()
@@ -24,7 +22,7 @@ int main()
 {
     Register_MenuScene();
 
-    //SetConfigFlags(FLAG_VSYNC_HINT);
+    SetConfigFlags(FLAG_VSYNC_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
     int initResult = EmiBase_Init();
