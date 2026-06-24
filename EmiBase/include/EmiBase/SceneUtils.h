@@ -5,7 +5,8 @@
 typedef enum {
     SCENE_NONE,
     SCENE_PUSH,
-    SCENE_REPLACE
+    SCENE_REPLACE,
+    SCENE_POP
 } SceneAction;
 
 typedef struct {

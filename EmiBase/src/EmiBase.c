@@ -138,6 +138,21 @@ void EmiBase_BeginDrawing()
     }
 #endif
 
+void _emibase_internal_replacescene(Scene* target)
+{
+    SceneStack new_stack = { .top = -1 };
+    scene_stack = new_stack;
+    for(int i = 0; i < MAX_SCENES; i++)
+    {
+        Scene* scene = registered_scenes[i];
+        if(scene == NULL)
+            break;
+        scene->active = false;
+    }
+    EmiObject_Wipe();
+    PushScene(target);
+}
+
 void EmiBase_StepScenes()
 {
     float deltaTime = GetFrameTime();
@@ -161,8 +176,10 @@ void EmiBase_StepScenes()
                             PushScene(new_scene);
                         }
                         else if (res.action == SCENE_REPLACE) {
-                            PopScene(); // remove current
-                            PushScene(new_scene);
+                            _emibase_internal_replacescene(new_scene);
+                        }
+                        else if (res.action == SCENE_POP) {
+                            PopScene();
                         }
                     } else {
                         eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
@@ -193,11 +210,12 @@ void EmiBase_StepScenes()
                     if (new_scene) {
                         if (res.action == SCENE_PUSH) {
                             PushScene(new_scene);
-                        }
-                        else if (res.action == SCENE_REPLACE) {
-                            PopScene();          // remove current
+                        } else if (res.action == SCENE_REPLACE) {
+                            PopScene();
                             EmiObject_Wipe();
                             PushScene(new_scene);
+                        } else if (res.action == SCENE_POP) {
+                            PopScene();
                         }
                     } else {
                         eprintf("[EmiBase] Failed to jump to nonexistent scene: %s\n", res.name);
@@ -211,21 +229,6 @@ void EmiBase_StepScenes()
 void EmiBase_Cleanup()
 {
     PostProcess_Cleanup();
-}
-
-void _emibase_internal_replacescene(Scene* target)
-{
-    SceneStack new_stack = { .top = -1 };
-    scene_stack = new_stack;
-    for(int i = 0; i < MAX_SCENES; i++)
-    {
-        Scene* scene = registered_scenes[i];
-        if(scene == NULL)
-            break;
-        scene->active = false;
-    }
-    EmiObject_Wipe();
-    PushScene(target);
 }
 
 #if NO_LOGGING == 0
