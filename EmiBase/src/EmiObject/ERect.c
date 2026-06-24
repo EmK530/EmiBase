@@ -26,6 +26,14 @@ void _erect_internal_render(ERect* rect, ETransform* t)
     }
 }
 
+#ifndef RELEASE
+    void _erect_internal_serialize(BufferWriter* writer, ERect* self)
+    {
+        BW_WriteU8(writer, 1); // Type identifier
+        Color32_serialize(writer, self->Color);
+    }
+#endif
+
 /*
     Creates a new Rect EmiObject.
     Set parent to NULL to create as a root object.
@@ -40,8 +48,12 @@ ERect* ERect_Create(EObject* parent)
     }
 
     rect->core = EObject_Create(rect);
-    rect->free_func = NULL;
+    rect->_free_func = NULL;
     rect->Render = _erect_internal_render;
+#ifndef RELEASE
+    rect->_serialize_func = _erect_internal_serialize;
+#endif
+    rect->core->SetName(rect->core, "ERect");
     
     rect->Color.r = 255;
     rect->Color.g = 255;

@@ -25,6 +25,7 @@ int EmiMain()
     if(initResult != 0) {
         eprintf("[Main] Could not initialize EmiBase\n");
         if(initResult == 1) WinMessageBox("Fatal error!", "Could not initialize EmiBase systems!", MB_TOPMOST | MB_ICONERROR);
+        WinExitProcess(1);
         return 1;
     }
 

@@ -2,6 +2,7 @@
 #include <stdarg.h>
 
 #include "EmiBase.h"
+#include "EmiBase/CrashHandler.h"
 
 #if SUPPORTS_POSTPROCESS == 1
 RenderTexture2D target;
@@ -44,7 +45,8 @@ int EmiBase_Init()
         PushScene(start);
     } else {
         eprintf("[EmiBase] Could not find startup scene: '" STARTUP_SCENE "'\n");
-        return 1;
+        WinMessageBox("Fatal error!", "The game's default scene could not be found!\nFailed to load '" STARTUP_SCENE "'", MB_TOPMOST | MB_ICONERROR);
+        return 2;
     };
 
     _crashhandler_internal_sendstatus(0);

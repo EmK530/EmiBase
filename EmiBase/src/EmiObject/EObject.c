@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "EmiObject/EmiObject.h"
 #include "EmiObject/EObject.h"
@@ -37,6 +38,33 @@ void _eobject_internal_setparent(EObject* ctx, EObject* parent)
 void _eobject_internal_destroy(EObject* ctx)
 {
     (void)ctx;
+}
+
+void _eobject_internal_setname(EObject* ctx, char* name)
+{
+    if(name == NULL)
+    {
+        if(ctx->Name != NULL)
+            MemFree(ctx->Name);
+        ctx->Name = NULL;
+        return;
+    }
+
+    size_t len = strlen(name);
+    if(len > 255) // Serialization limits
+        return;
+    if(len == 0)
+    {
+        if(ctx->Name != NULL)
+            MemFree(ctx->Name);
+        ctx->Name = NULL;
+        return;
+    }
+    char* newname = MemAlloc(len + 1);
+    strncpy(newname, name, len);
+    if(ctx->Name != NULL)
+        MemFree(ctx->Name);
+    ctx->Name = name;
 }
 
 void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
@@ -79,6 +107,26 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
     ctx->_item->Render(ctx->_item, out);
 }
 
+#ifndef RELEASE
+    void _eobject_internal_serialize(BufferWriter* writer, EObject* self)
+    {
+        if(self->Name != NULL)
+        {
+            uint8_t namelen = (uint8_t)strlen(self->Name);
+            BW_WriteU8(writer, namelen);
+            BW_WriteString(writer, self->Name, namelen);
+        } else {
+            BW_WriteU8(writer, 0);
+        }
+        EUDim2_serialize(writer, self->Position);
+        EUDim2_serialize(writer, self->Size);
+        BW_WriteFloat(writer, self->Rotation);
+        Vector2_serialize(writer, self->Anchor);
+        BW_WriteU8(writer, self->Visible ? 1 : 0);
+        BW_WriteU8(writer, self->ZIndex);
+    }
+#endif
+
 /*
     Creates a new blank EmiObject. This is internal and should not be used manually.
     Set parent to NULL to create as a root object.
@@ -97,6 +145,7 @@ EObject* EObject_Create(void* generic)
         return NULL;
     }
 
+    object->Name = NULL;
     object->Position = UDim2_new(0.0f, 100, 0.0f, 100);
     object->Size = UDim2_new(0.0f, 100, 0.0f, 100);
     object->Anchor = Vector2_new(0.0f, 0.0f);
@@ -106,9 +155,13 @@ EObject* EObject_Create(void* generic)
     object->Visible = true;
     object->ZIndex = 0;
 
+    object->SetName = _eobject_internal_setname;
     object->SetParent = _eobject_internal_setparent;
     object->Destroy = _eobject_internal_destroy;
     object->_render = _eobject_internal_render;
+#ifndef RELEASE
+    object->_serialize_func = _eobject_internal_serialize;
+#endif
     
     object->_item = (EGeneric*)generic;
 

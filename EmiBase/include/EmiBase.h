@@ -4,7 +4,6 @@
 
 #include "EmiBase/AudioManager.h"
 #include "EmiBase/ContentManager.h"
-#include "EmiBase/CrashHandler.h"
 #include "EmiBase/FontManager.h"
 #include "EmiBase/PostProcess.h"
 #include "EmiBase/SceneUtils.h"
@@ -73,6 +72,9 @@
     You should probably update pak_builder.py if you change this.
 */
 #define CONTENT_NAME "content.epak"
+
+// The key used for reading encrypted content files, must match the key in the Python script but can be ignored if encryption is off.
+#define CONTENT_KEY 0xC417A251
 
 /* DO NOT EDIT BEYOND THIS POINT */
 

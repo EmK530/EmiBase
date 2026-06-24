@@ -23,40 +23,38 @@ void SFunc (Init)(Scene *s) {
 ERect* source = NULL;
 
 void SFunc (Prepare)(Scene *s) {
+    /*
     source = ERect_Create(NULL);
     source->core->Position = UDim2_fromScale(0.5, 0.5);
     source->core->Anchor = Vector2_new(0.5, 0.5);
-
     ERect* o1 = ERect_Create(source->core);
-    o1->core->Position = UDim2_fromScale(-1.0, 0.5);
-    o1->core->Anchor = Vector2_new(0.5, 0.5);
+    o1->core->Position = UDim2_fromScale(-0.5, 0.5);
+    o1->core->Anchor = Vector2_new(1, 0.5);
     o1->core->Size = UDim2_fromOffset(50, 50);
     o1->Color = RED;
-
     ERect* o2 = ERect_Create(source->core);
-    o2->core->Position = UDim2_fromScale(0.5, -1.0);
-    o2->core->Anchor = Vector2_new(0.5, 0.5);
+    o2->core->Position = UDim2_fromScale(0.5, -0.5);
+    o2->core->Anchor = Vector2_new(0.5, 1);
     o2->core->Size = UDim2_fromOffset(50, 50);
     o2->Color = ORANGE;
-
     ERect* o3 = ERect_Create(source->core);
-    o3->core->Position = UDim2_fromScale(1.0, 0.5);
-    o3->core->Anchor = Vector2_new(-1.5, 0.5);
+    o3->core->Position = UDim2_fromScale(1.5, 0.5);
+    o3->core->Anchor = Vector2_new(0.0, 0.5);
     o3->core->Size = UDim2_fromOffset(50, 50);
     o3->Color = YELLOW;
-
     ERect* o4 = ERect_Create(source->core);
-    o4->core->Position = UDim2_fromScale(0.5, 1.0);
-    o4->core->Anchor = Vector2_new(0.5, -1.5);
+    o4->core->Position = UDim2_fromScale(0.5, 1.5);
+    o4->core->Anchor = Vector2_new(0.5, 0.0);
     o4->core->Size = UDim2_fromOffset(50, 50);
     o4->Color = GREEN;
 
     EmiObject_Serialize();
+    */
+
+    EmiObject_Deserialize("object/Menu.eobj");
 
     eprintf("[Scene." SCENE_STR "] Prepared\n");
 }
-
-static double time = 0.0;
 
 void SFunc (OnInput)(Scene *s, int e) {}
 
@@ -66,7 +64,7 @@ const SceneResult SFunc (WorkEarly)(Scene *s, double deltaTime) {
 
     FontManager_DrawText("MxPlus_IBM_VGA_8x16.ttf", height/24, "Currently displaying: Scene 'Menu'", Vector2_new(20, 20), WHITE);
     
-    source->core->Rotation += deltaTime*180;
+    //source->core->Rotation += deltaTime*180;
 
     return (SceneResult){ SCENE_NONE, NULL };
 }

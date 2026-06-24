@@ -6,7 +6,6 @@
 
 #define SPAK_MAGIC "EPAK"
 #define SFCH_MAGIC "EFCH"
-#define CONTENT_KEY 0xC417A251
 
 static FILE *gPakFile = NULL;
 static LinkedList *gEntries = NULL;
