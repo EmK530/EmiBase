@@ -6,7 +6,7 @@ RAYLIB_SRC_PATH       ?= C:\\raylib\\raylib\\src
 RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_SRC_PATH)
 RAYLIB_LIB_PATH       ?= $(RAYLIB_SRC_PATH)
 
-LDFLAGS_WIN = -L. -L$(RAYLIB_LIB_PATH) -Wl,--gc-sections
+LDFLAGS_WIN = -L. -L$(RAYLIB_LIB_PATH) -Wl,--gc-sections,-eEmiMain
 LDLIBS = -lraylib -lopengl32 -lgdi32 -lwinmm -lcomdlg32 -lole32 -ldwmapi
 LDLIBS += -static -lpthread
 

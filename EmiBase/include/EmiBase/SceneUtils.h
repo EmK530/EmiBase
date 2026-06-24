@@ -20,8 +20,34 @@ typedef struct Scene {
     void (*OnInput)(struct Scene *s, int e);
     const SceneResult (*WorkEarly)(struct Scene *s, double deltaTime); // return name of next scene, or NULL
     const SceneResult (*WorkLate)(struct Scene *s, double deltaTime); // return name of next scene, or NULL
-    void *data;
+    void *misc; // Store anything you want here, you can allocate a struct on the scene-end.
 } Scene;
+
+#define DEFINE_SCENE_INTERNAL(scene_name) \
+    Scene scene_name##Scene = { \
+        .name = #scene_name, \
+        .Init = scene_name##_Init, \
+        .Prepare = scene_name##_Prepare, \
+        .OnInput = scene_name##_OnInput, \
+        .WorkEarly = scene_name##_WorkEarly, \
+        .WorkLate = scene_name##_WorkLate, \
+        .misc = NULL \
+    }; \
+    void Register_##scene_name() { \
+        register_scene(&scene_name##Scene); \
+    }
+
+#define STRINGIFY_INNER(x) #x
+#define STRINGIFY(x) STRINGIFY_INNER(x)
+#define DEFINE_SCENE(name) DEFINE_SCENE_INTERNAL(name)
+#define CONCAT_INNER(a, b) a##_##b
+#define CONCAT(a, b) CONCAT_INNER(a, b)
+#ifndef SCENE_NAME
+    // This should never happen, you should have defined SCENE_NAME before requiring EmiBase.h if you are coding in a scene.
+    #define SCENE_NAME Unknown
+#endif
+#define SFunc(suffix) CONCAT(SCENE_NAME, suffix) 
+#define SCENE_STR STRINGIFY(SCENE_NAME)
 
 typedef struct SceneStack {
     Scene *scenes[MAX_SCENES];

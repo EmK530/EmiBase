@@ -16,12 +16,8 @@ static void DrawOverlay()
     #include <emscripten/emscripten.h>
 #endif
 
-extern void Register_MenuScene();
-
-int main()
+int EmiMain()
 {
-    Register_MenuScene();
-
     SetConfigFlags(FLAG_VSYNC_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
@@ -47,5 +43,7 @@ int main()
 
     EmiBase_Cleanup();
     CloseWindow();
+    WinExitProcess(0);
+
     return 0;
 }

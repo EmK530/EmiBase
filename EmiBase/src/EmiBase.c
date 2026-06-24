@@ -7,6 +7,8 @@
 RenderTexture2D target;
 #endif
 
+extern int main();
+
 int EmiBase_Init()
 {
     CrashHandler_Init();
@@ -34,6 +36,8 @@ int EmiBase_Init()
 #endif
 
     SetTargetFPS(FPS_LIMIT);
+
+    main(); // Call the Game entrypoint to load scenes.
 
     Scene *start = find_scene(STARTUP_SCENE);
     if (start) {

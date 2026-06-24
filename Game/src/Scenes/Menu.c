@@ -1,19 +1,12 @@
 #include <stdio.h>
 
+#define SCENE_NAME Menu
 #include "EmiBase.h"
-
-typedef struct {
-    int frame_count;
-} MenuData;
 
 static Shader crt;
 static Shader shift;
 
-void Menu_Init(Scene *s) {
-    MenuData *data = MemAlloc(sizeof(MenuData));
-    data->frame_count = 0;
-    s->data = data;
-
+void SFunc (Init)(Scene *s) {
     crt = ContentManager_LoadShader(NULL, "shader/crt.glsl");
     shift = ContentManager_LoadShader(NULL, "shader/shift.glsl");
 
@@ -26,15 +19,12 @@ void Menu_Init(Scene *s) {
         if (intLoc != -1) SetShaderValue(shift, intLoc, &intensity, SHADER_UNIFORM_FLOAT);
     }
 
-    eprintf("[MenuScene] Initialized\n");
+    eprintf("[Scene." SCENE_STR "] Initialized\n");
 }
 
 ERect* source = NULL;
 
-void Menu_Prepare(Scene *s) {
-    MenuData *data = (MenuData*)s->data;
-    data->frame_count = 0;
-
+void SFunc (Prepare)(Scene *s) {
     source = ERect_Create(NULL);
     source->core->Position = UDim2_fromScale(0.5, 0.5);
     source->core->Anchor = Vector2_new(0.5, 0.5);
@@ -65,21 +55,14 @@ void Menu_Prepare(Scene *s) {
 
     EmiObject_Serialize();
 
-    eprintf("[MenuScene] Prepared\n");
+    eprintf("[Scene." SCENE_STR "] Prepared\n");
 }
 
 static double time = 0.0;
 
-void Menu_OnInput(Scene *s, int e) {
-    MenuData *data = (MenuData*)s->data;
-}
+void SFunc (OnInput)(Scene *s, int e) {}
 
-const SceneResult Menu_WorkEarly(Scene *s, double deltaTime) {
-    MenuData *data = (MenuData*)s->data;
-    data->frame_count++;
-    if(data->frame_count > 1)
-        time += deltaTime;
-
+const SceneResult SFunc (WorkEarly)(Scene *s, double deltaTime) {
     int width = GetScreenWidth();
     int height = GetScreenHeight();
 
@@ -90,25 +73,8 @@ const SceneResult Menu_WorkEarly(Scene *s, double deltaTime) {
     return (SceneResult){ SCENE_NONE, NULL };
 }
 
-const SceneResult Menu_WorkLate(Scene *s, double deltaTime) {
-    MenuData *data = (MenuData*)s->data;
-
-    (void)data;
-    (void)deltaTime;
-
+const SceneResult SFunc (WorkLate)(Scene *s, double deltaTime) {
     return (SceneResult){ SCENE_NONE, NULL };
 }
 
-Scene MenuScene = {
-    .name = "Menu",
-    .Init = Menu_Init,
-    .Prepare = Menu_Prepare,
-    .OnInput = Menu_OnInput,
-    .WorkEarly = Menu_WorkEarly,
-    .WorkLate = Menu_WorkLate,
-    .data = NULL
-};
-
-void Register_MenuScene() {
-    register_scene(&MenuScene);
-}
+DEFINE_SCENE(SCENE_NAME)
