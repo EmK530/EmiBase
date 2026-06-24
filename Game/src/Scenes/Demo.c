@@ -37,15 +37,16 @@ void SFunc (Prepare)(Scene *s) {
 void SFunc (OnInput)(Scene *s, int e) {}
 
 const SceneResult SFunc (WorkEarly)(Scene *s, double deltaTime) {
-    int width = GetScreenWidth();
     int height = GetScreenHeight();
-
-    FontManager_DrawText("MxPlus_IBM_VGA_8x16.ttf", height/24, "Currently displaying: Scene 'Menu'", Vector2_new(20, 20), WHITE);
+    FontManager_DrawText("MxPlus_IBM_VGA_8x16.ttf", height/24, "Welcome to the 'Demo' scene!", Vector2_new(20, 20), WHITE);
 
     return (SceneResult){ SCENE_NONE, NULL };
 }
 
 const SceneResult SFunc (WorkLate)(Scene *s, double deltaTime) {
+    int height = GetScreenHeight();
+    FontManager_DrawText("MxPlus_IBM_VGA_8x16.ttf", height/32, "This text is drawn in WorkLate.", Vector2_new(20, 20+height/22), WHITE);
+
     return (SceneResult){ SCENE_NONE, NULL };
 }
 

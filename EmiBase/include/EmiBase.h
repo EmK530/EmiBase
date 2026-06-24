@@ -90,7 +90,7 @@ void EmiBase_Cleanup();
     static inline void EmiObject_Serialize() {}
 #endif
 
-#define EMIBASE_VER "v0.0.0"
+#define EMIBASE_VER "Indev"
 
 #ifndef GIT_HASH
     #define GIT_HASH "00000000"
