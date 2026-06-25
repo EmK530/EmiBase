@@ -1,8 +1,13 @@
 #pragma once
 
+#include "EmiBase.h"
+
+extern EObject* nk_selected_object;
+
 #ifndef RELEASE
     int NuklearUI_Init();
     void NuklearUI_Draw();
+    void NuklearUI_ResetHighlight();
     extern bool nk_workEarly;
     extern bool nk_emiObject;
     extern bool nk_workLate;
@@ -10,7 +15,8 @@
     extern bool nk_overlay;
 #else
     static inline int NuklearUI_Init() { return 1; };
-    static inline void NuklearUI_Draw();
+    static inline void NuklearUI_Draw() {};
+    static inline void NuklearUI_ResetHighlight() {};
     #define nk_workEarly 0
     #define nk_emiObject 0
     #define nk_workLate 0

@@ -1,16 +1,17 @@
+#include "EmiBase/NuklearUI.h"
+
+EObject* nk_selected_object = NULL;
+
 #ifndef RELEASE
 
 #include <float.h>
 #include <limits.h>
 #include <string.h>
 
-#include "EmiBase.h"
-
 #define RAYLIB_NUKLEAR_IMPLEMENTATION
 #include "raylib-nuklear.h"
 
 struct nk_context *ctx = NULL;
-EObject* nk_selected_object = NULL;
 
 bool nk_workEarly = 0;
 bool nk_emiObject = 0;
@@ -104,6 +105,15 @@ static EObject*  nk_name_buf_owner = NULL;
 static char      nk_name_buf[128]  = {0};
 static int       nk_name_buf_len   = 0;
 static bool      nk_name_editing   = false;
+
+void NuklearUI_ResetHighlight()
+{
+    nk_selected_object = NULL;
+    nk_name_buf_owner = NULL;
+    nk_name_buf[0]  = '\0';
+    nk_name_buf_len = 0;
+    nk_name_editing = false;
+}
 
 static void Workspace_DrawRenamePopup(EObject* object)
 {
@@ -411,10 +421,6 @@ void NuklearUI_Draw()
                 if(!btn && btn_og)
                 {
                     _emibase_internal_replacescene(scene);
-                    nk_selected_object = NULL;
-                    nk_name_buf_owner = NULL;
-                    nk_name_buf[0]  = '\0';
-                    nk_name_buf_len = 0;
                 }
             }
 

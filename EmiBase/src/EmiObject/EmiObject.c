@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "EmiBase/NuklearUI.h"
 #include "EmiObject/EmiObject.h"
 #ifndef RELEASE
     #include "Libraries/BufferWriter.h"
@@ -57,6 +58,8 @@ void _emiobject_internal_wipe_recursively(LinkedList* collection, EObject* objec
     LinkedList_dispose(&collection, NULL);
     if(object != NULL)
     {
+        if(object == nk_selected_object)
+            NuklearUI_ResetHighlight();
         MemFree(object->Name);
         if(object->_item->_free_func != NULL)
             object->_item->_free_func(object->_item);
