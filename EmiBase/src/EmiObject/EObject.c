@@ -90,18 +90,16 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
     localX -= parent->Size.x * parent->Anchor.x;
     localY -= parent->Size.y * parent->Anchor.y;
 
-    // anchor fix
-    localX += out->Size.x * (0.5f - ctx->Anchor.x);
-    localY += out->Size.y * (0.5f - ctx->Anchor.y);
+    float localXR = localX + out->Size.x * (0.5f - ctx->Anchor.x);
+    float localYR = localY + out->Size.y * (0.5f - ctx->Anchor.y);
 
     float s = sinf(SDEG2RAD(parent->Rotation));
     float c = cosf(SDEG2RAD(parent->Rotation));
 
-    float rx = localX * c - localY * s;
-    float ry = localX * s + localY * c;
-
-    out->Position.x = parent->Position.x + rx;
-    out->Position.y = parent->Position.y + ry;
+    out->Position.x = parent->Position.x + (localX * c - localY * s);
+    out->Position.y = parent->Position.y + (localX * s + localY * c);
+    out->RPosition.x = parent->Position.x + (localXR * c - localYR * s);
+    out->RPosition.y = parent->Position.y + (localXR * s + localYR * c);
 
     out->Rotation = parent->Rotation + ctx->Rotation;
     out->Anchor = ctx->Anchor;
@@ -163,6 +161,7 @@ EObject* EObject_Create(void* generic)
     object->_render = _eobject_internal_render;
 #ifndef RELEASE
     object->_serialize_func = _eobject_internal_serialize;
+    object->_nk_expanded = false;
 #endif
     
     object->_item = (EGeneric*)generic;

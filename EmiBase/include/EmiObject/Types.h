@@ -25,7 +25,7 @@ static inline Rectangle Rectangle_new(float a, float b)
 typedef struct
 {
     float Scale;
-    uint32_t Offset;
+    int32_t Offset;
 } EUDim;
 
 typedef struct

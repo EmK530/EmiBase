@@ -22,6 +22,7 @@ typedef struct EGeneric EGeneric;
 typedef struct
 {
     Vector2 Position;
+    Vector2 RPosition;
     Vector2 Size;
     float Rotation;
     Vector2 Anchor;
@@ -60,6 +61,7 @@ struct EObject
     void (*_render)(EObject* ctx, ETransform* parent, ETransform* out); // Internal render function, do not invoke
 #ifndef RELEASE
     void (*_serialize_func)(BufferWriter* writer,EObject* self); // Internal serialize function, do not invoke
+    bool _nk_expanded; // Nuklear UI: whether children are expanded in the hierarchy panel
 #endif
 
     EGeneric* _item; // Internal attached object, can be cast to ERect or other types if you know what you are accessing
