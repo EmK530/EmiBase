@@ -186,24 +186,24 @@ static void Workspace_DrawProperties(EObject* object, float panel_height)
     nk_label(ctx, "Position", NK_TEXT_LEFT);
 
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "PX.Scale",  -FLT_MAX, &object->Position.X.Scale,  FLT_MAX, 0.01f, 0.005f);
-    nk_property_int  (ctx, "PX.Offset", INT_MIN,  (int*)&object->Position.X.Offset, INT_MAX, 1, 1);
+    nk_property_float(ctx, "#X.Scale",  -FLT_MAX, &object->Position.X.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_int  (ctx, "#X.Offset", INT_MIN,  (int*)&object->Position.X.Offset, INT_MAX, 1, 1);
 
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "PY.Scale",  -FLT_MAX, &object->Position.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
-    nk_property_int  (ctx, "PY.Offset", INT_MIN,  (int*)&object->Position.Y.Offset, INT_MAX, 1, 1);
+    nk_property_float(ctx, "#Y.Scale",  -FLT_MAX, &object->Position.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_int  (ctx, "#Y.Offset", INT_MIN,  (int*)&object->Position.Y.Offset, INT_MAX, 1, 1);
 
     // --- Size ---
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Size", NK_TEXT_LEFT);
 
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "SX.Scale",  0.0f, &object->Size.X.Scale,  FLT_MAX, 0.01f, 0.005f);
-    nk_property_int  (ctx, "SX.Offset", 0,    (int*)&object->Size.X.Offset, INT_MAX, 1, 1);
+    nk_property_float(ctx, "X.Scale",  0.0f, &object->Size.X.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_int  (ctx, "X.Offset", 0,    (int*)&object->Size.X.Offset, INT_MAX, 1, 1);
 
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "SY.Scale",  0.0f, &object->Size.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
-    nk_property_int  (ctx, "SY.Offset", 0,    (int*)&object->Size.Y.Offset, INT_MAX, 1, 1);
+    nk_property_float(ctx, "Y.Scale",  0.0f, &object->Size.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_int  (ctx, "Y.Offset", 0,    (int*)&object->Size.Y.Offset, INT_MAX, 1, 1);
 
     // --- Rotation ---
     nk_layout_row_dynamic(ctx, 18, 1);
@@ -215,8 +215,8 @@ static void Workspace_DrawProperties(EObject* object, float panel_height)
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Anchor", NK_TEXT_LEFT);
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "AX", -FLT_MAX, &object->Anchor.x, FLT_MAX, 0.01f, 0.005f);
-    nk_property_float(ctx, "AY", -FLT_MAX, &object->Anchor.y, FLT_MAX, 0.01f, 0.005f);
+    nk_property_float(ctx, "X", -FLT_MAX, &object->Anchor.x, FLT_MAX, 0.01f, 0.005f);
+    nk_property_float(ctx, "Y", -FLT_MAX, &object->Anchor.y, FLT_MAX, 0.01f, 0.005f);
 
     // --- Visible, renamed to Hidden because of checkbox inversion ---
     nk_layout_row_dynamic(ctx, 18, 1);
