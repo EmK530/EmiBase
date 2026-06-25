@@ -21,9 +21,9 @@ int EmiObject_Init()
 void Recursive_EObject_Draw(EObject* object, ETransform* parent)
 {
     ETransform current;
-
+    if(!object->Visible)
+        return;
     object->_render(object, parent, &current);
-
     LinkedList_foreach(object->Children, child)
     {
         EObject* co = (EObject*)child->item;
