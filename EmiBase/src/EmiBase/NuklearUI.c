@@ -411,6 +411,10 @@ void NuklearUI_Draw()
                 if(!btn && btn_og)
                 {
                     _emibase_internal_replacescene(scene);
+                    nk_selected_object = NULL;
+                    nk_name_buf_owner = NULL;
+                    nk_name_buf[0]  = '\0';
+                    nk_name_buf_len = 0;
                 }
             }
 
