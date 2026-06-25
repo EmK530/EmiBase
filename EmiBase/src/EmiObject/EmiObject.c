@@ -36,10 +36,9 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
 {
     Vector2 res = { (float)screenWidth, (float)screenHeight };
     ETransform root = {
-        .Position = {0.0f, 0.0f},
+        .Position = {res.x/2.0f, res.y/2.0f},
         .Size     = {res.x, res.y},
-        .Rotation = 0.0f,
-        .Anchor   = {0.0f, 0.0f}
+        .Rotation = 0.0f
     };
     LinkedList_foreach(root_objects, obj)
     {

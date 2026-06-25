@@ -22,10 +22,8 @@ typedef struct EGeneric EGeneric;
 typedef struct
 {
     Vector2 Position;
-    Vector2 RPosition;
     Vector2 Size;
     float Rotation;
-    Vector2 Anchor;
 } ETransform;
 
 struct EGeneric

@@ -11,8 +11,8 @@ void _erect_internal_render(ERect* rect, ETransform* t)
     if (t->Rotation == 0.0f)
     {
         DrawRectangle(
-            (int)(t->RPosition.x - t->Size.x * 0.5f),
-            (int)(t->RPosition.y - t->Size.y * 0.5f),
+            (int)(t->Position.x - t->Size.x * 0.5f),
+            (int)(t->Position.y - t->Size.y * 0.5f),
             (int)t->Size.x,
             (int)t->Size.y,
             color
@@ -20,7 +20,7 @@ void _erect_internal_render(ERect* rect, ETransform* t)
     }
     else
     {
-        Rectangle r = { t->RPosition.x, t->RPosition.y, t->Size.x, t->Size.y };
+        Rectangle r = { t->Position.x, t->Position.y, t->Size.x, t->Size.y };
         Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
         DrawRectanglePro(r, origin, t->Rotation, color);
     }

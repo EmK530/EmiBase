@@ -87,22 +87,19 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
     float localX = ctx->Position.X.Offset + ctx->Position.X.Scale * parent->Size.x;
     float localY = ctx->Position.Y.Offset + ctx->Position.Y.Scale * parent->Size.y;
 
-    localX -= parent->Size.x * parent->Anchor.x;
-    localY -= parent->Size.y * parent->Anchor.y;
+    localX -= parent->Size.x * 0.5f;
+    localY -= parent->Size.y * 0.5f;
 
-    float localXR = localX + out->Size.x * (0.5f - ctx->Anchor.x);
-    float localYR = localY + out->Size.y * (0.5f - ctx->Anchor.y);
+    localX += out->Size.x * (0.5f - ctx->Anchor.x);
+    localY += out->Size.y * (0.5f - ctx->Anchor.y);
 
     float s = sinf(SDEG2RAD(parent->Rotation));
     float c = cosf(SDEG2RAD(parent->Rotation));
 
     out->Position.x = parent->Position.x + (localX * c - localY * s);
     out->Position.y = parent->Position.y + (localX * s + localY * c);
-    out->RPosition.x = parent->Position.x + (localXR * c - localYR * s);
-    out->RPosition.y = parent->Position.y + (localXR * s + localYR * c);
 
     out->Rotation = parent->Rotation + ctx->Rotation;
-    out->Anchor = ctx->Anchor;
 
     ctx->_item->Render(ctx->_item, out);
 }
