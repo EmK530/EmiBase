@@ -3,10 +3,7 @@
 
 #include "EmiBase.h"
 #include "EmiBase/CrashHandler.h"
-
-#ifndef RELEASE
-    #include "EmiBase/NuklearUI.h"
-#endif
+#include "EmiBase/NuklearUI.h" // Don't worry, it's not part of Release.
 
 #if SUPPORTS_POSTPROCESS == 1
 RenderTexture2D target;

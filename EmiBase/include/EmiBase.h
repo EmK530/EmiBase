@@ -49,12 +49,12 @@
 
 // Default window width in pixels.
 #ifndef RES_X
-    #define RES_X 1280
+    #define RES_X 1600
 #endif
 
 // Default window height in pixels.
 #ifndef RES_Y
-    #define RES_Y 720
+    #define RES_Y 900
 #endif
 
 // Removes all logging made by function calls to eprintf, strings should end up discarded by the compiler.

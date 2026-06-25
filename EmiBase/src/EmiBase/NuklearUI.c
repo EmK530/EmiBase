@@ -284,7 +284,7 @@ static void Workspace_DrawWorkspace()
             split_y = content.h * 0.6f;
 
         // Clamp split so neither panel collapses entirely
-        float min_pane = 40.0f;
+        float min_pane = 50.0f;
         if (split_y < min_pane)              split_y = min_pane;
         if (split_y > content.h - min_pane)  split_y = content.h - min_pane;
 

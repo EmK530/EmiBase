@@ -9,7 +9,7 @@
     extern bool nk_postProcess;
     extern bool nk_overlay;
 #else
-    static inline int NuklearUI_Init() { return 1 };
+    static inline int NuklearUI_Init() { return 1; };
     static inline void NuklearUI_Draw();
     #define nk_workEarly 0
     #define nk_emiObject 0
