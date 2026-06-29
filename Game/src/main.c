@@ -1,3 +1,5 @@
+#include "EmiBase.h"
+
 // Define all your scenes.
 extern void Register_Demo();
 extern void Register_Blank();
@@ -8,4 +10,9 @@ int main()
     // Loading all scenes.
     Register_Demo();
     Register_Blank();
+}
+
+void PostDraw_Overlay()
+{
+    DrawFPS(10, GetScreenHeight() - 27);
 }

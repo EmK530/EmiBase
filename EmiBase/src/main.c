@@ -4,17 +4,13 @@
 
 #include "EmiBase.h"
 
-static void DrawOverlay()
-{
-    DrawFPS(10, GetScreenHeight() - 27);
-    // Add anything else you may want
-}
-
 // Road ends here :)
 
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
 #endif
+
+extern void PostDraw_Overlay();
 
 int EmiMain()
 {
@@ -39,7 +35,7 @@ int EmiMain()
         ClearBackground(BLACK);
         EmiBase_StepScenes();
 
-        EmiBase_EndDrawing(DrawOverlay);
+        EmiBase_EndDrawing(PostDraw_Overlay);
     }
 
     EmiBase_Cleanup();
