@@ -413,6 +413,11 @@ void NuklearUI_Draw()
         else
             NuklearUI_ResetHighlight();
     }
+    if (IsKeyPressed(KEY_DELETE))
+    {
+        if(nk_selected_object)
+            nk_selected_object->Destroy(nk_selected_object);
+    }
 
     nk_input_begin(ctx);
     UpdateNuklear(ctx);
