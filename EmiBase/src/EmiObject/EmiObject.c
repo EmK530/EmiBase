@@ -3,6 +3,7 @@
 #define EOBJECT_FULL_SCOPE
 #include "EmiBase/NuklearUI.h"
 #include "EmiObject/EmiObject.h"
+#include "EmiObject/Types.h"
 #ifndef RELEASE
     #include "Libraries/BufferWriter.h"
 #endif
@@ -33,11 +34,16 @@ void Recursive_EObject_Draw(EObject* object, ETransform* parent)
     }
 }
 
+static EVector2i drawing_offset = {.X = 0, .Y = 0};
+void EmiObject_SetDrawOffset(EVector2i value)
+{
+    drawing_offset = value;
+}
 void EmiObject_Draw(int screenWidth, int screenHeight)
 {
     Vector2 res = { (float)screenWidth, (float)screenHeight };
     ETransform root = {
-        .Position = {res.x/2.0f, res.y/2.0f},
+        .Position = {res.x/2.0f + drawing_offset.X, res.y/2.0f + drawing_offset.Y},
         .Size     = {res.x, res.y},
         .Rotation = 0.0f
     };
@@ -46,6 +52,7 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
         EObject* object = (EObject*)obj->item;
         Recursive_EObject_Draw(object, &root);
     }
+    drawing_offset = (EVector2i){.X = 0, .Y = 0};
 }
 
 void _emiobject_internal_wipe_recursively(LinkedList* collection, EObject* object)
