@@ -65,6 +65,8 @@ void _emiobject_internal_wipe_recursively(LinkedList* collection, EObject* objec
     LinkedList_dispose(&collection, NULL);
     if(object != NULL)
     {
+        LinkedList* target = object->_parent == NULL ? root_objects : object->_parent->Children;
+        LinkedList_remove(target, LinkedList_find(target, object), NULL);
         if(object == nk_selected_object)
             NuklearUI_ResetHighlight();
         MemFree(object->Name);

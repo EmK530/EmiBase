@@ -34,7 +34,7 @@ static double time = 0.0;
 const SceneResult SFunc (WorkEarly)(Scene *s, double deltaTime) {
     int height = GetScreenHeight();
     time += deltaTime;
-    EmiObject_SetDrawOffset((EVector2i){.X = 0, .Y = sin(time*3)*100});
+    //EmiObject_SetDrawOffset((EVector2i){.X = 0, .Y = sin(time*3)*100});
     FontManager_DrawText("MxPlus_IBM_VGA_8x16.ttf", height/24, "Welcome to the 'Demo' scene!", Vector2_new(20, 20), WHITE);
 
     return (SceneResult){ SCENE_NONE, NULL };

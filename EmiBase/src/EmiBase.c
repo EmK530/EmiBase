@@ -37,6 +37,7 @@ int EmiBase_Init()
     }
 #endif
 
+    SetExitKey(KEY_NULL);
     SetTargetFPS(FPS_LIMIT);
 
     main(); // Call the Game entrypoint to load scenes.
