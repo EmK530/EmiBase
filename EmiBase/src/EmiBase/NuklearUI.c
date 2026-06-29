@@ -1,3 +1,5 @@
+#define EOBJECT_FULL_SCOPE
+
 #include "EmiBase/NuklearUI.h"
 
 EObject* nk_selected_object = NULL;

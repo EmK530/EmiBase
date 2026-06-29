@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define EOBJECT_FULL_SCOPE
+
 #include "EmiObject/EmiObject.h"
 #include "EmiObject/EObject.h"
 #include "EmiObject/Types.h"
@@ -11,25 +13,25 @@ void _eobject_internal_setparent(EObject* ctx, EObject* parent)
 {
     if(parent != NULL)
     {
-        if(ctx->Parent != NULL)
+        if(ctx->_parent != NULL)
         {
-            Node* node = LinkedList_find(ctx->Parent->Children, ctx);
+            Node* node = LinkedList_find(ctx->_parent->Children, ctx);
             if(node != NULL)
-                LinkedList_remove(ctx->Parent->Children, node, NULL);
+                LinkedList_remove(ctx->_parent->Children, node, NULL);
         } else {
             Node* node = LinkedList_find(root_objects, ctx);
             if(node != NULL)
                 LinkedList_remove(root_objects, node, NULL);
         }
-        ctx->Parent = parent;
+        ctx->_parent = parent;
         LinkedList_append(parent->Children, ctx);
     } else {
-        if(ctx->Parent != NULL)
+        if(ctx->_parent != NULL)
         {
-            Node* node = LinkedList_find(ctx->Parent->Children, ctx);
+            Node* node = LinkedList_find(ctx->_parent->Children, ctx);
             if(node != NULL)
-                LinkedList_remove(ctx->Parent->Children, node, NULL);
-            ctx->Parent = NULL;
+                LinkedList_remove(ctx->_parent->Children, node, NULL);
+            ctx->_parent = NULL;
             LinkedList_append(root_objects, ctx);
         }
     }
@@ -147,7 +149,7 @@ EObject* EObject_Create(void* generic)
     object->Size = UDim2_new(0.0f, 100, 0.0f, 100);
     object->Anchor = Vector2_new(0.0f, 0.0f);
     object->Rotation = 0.0f;
-    object->Parent = NULL;
+    object->_parent = NULL;
     object->Children = LinkedList_create();
     object->Visible = true;
     object->ZIndex = 0;

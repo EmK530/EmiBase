@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#define EOBJECT_FULL_SCOPE
+
 #include "EmiObject/EmiObject.h"
 #include "EmiObject/ERect.h"
 #include "EmiObject/Types.h"

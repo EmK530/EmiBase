@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#define EOBJECT_FULL_SCOPE
 #include "EmiBase/NuklearUI.h"
 #include "EmiObject/EmiObject.h"
 #ifndef RELEASE
@@ -127,6 +128,7 @@ void EmiObject_Deserialize(const char* filePath)
     {
         MemFree(magic);
         BR_Destroy(reader);
+        MemFree(data);
         eprintf("[EmiObject] Deserialization failed, invalid header magic.\n");
         return;
     }
@@ -134,10 +136,14 @@ void EmiObject_Deserialize(const char* filePath)
     uint8_t version = BR_ReadU8(reader);
     if(version != 1)
     {
+        BR_Destroy(reader);
+        MemFree(data);
         eprintf("[EmiObject] Deserialization failed, unsupported file version: %i\n", version);
         return;
     }
     _internal_deserialize_recursively(reader, NULL);
+    BR_Destroy(reader);
+    MemFree(data);
 }
 
 #ifndef RELEASE

@@ -37,32 +37,53 @@ struct EGeneric
 #endif
 };
 
-struct EObject
-{
-    char* Name; // The name of the object
-    EUDim2 Position; // The position of the object
-    EUDim2 Size; // The size of the object
-    float Rotation; // The rotation of the object (degrees)
-    Vector2 Anchor; // Anchor point of the object from 0 to 1: 0,0 = top left | 1,1 = bottom right
+#ifdef EOBJECT_FULL_SCOPE
+    struct EObject
+    {
+        char* Name; // The name of the object, do not modify directly.
+        EUDim2 Position; // The position of the object
+        EUDim2 Size; // The size of the object
+        float Rotation; // The rotation of the object (degrees)
+        Vector2 Anchor; // Anchor point of the object from 0 to 1: 0,0 = top left | 1,1 = bottom right
 
-    EObject* Parent; // The parent of this EmiObject, DO NOT MODIFY, CALL SETPARENT
-    LinkedList* Children; // Child objects of this EmiObject
-    void (*SetParent)(EObject* ctx, EObject* parent); // Update the parent of this EmiObject
-    void (*Destroy)(EObject* ctx); // Delete this EmiObject (TO BE IMPLEMENTED)
-    void (*SetName)(EObject* ctx, char* name); // Update the name of this EmiObject, the memory does not need to persist as this will be allocated
+        LinkedList* Children; // Child objects of this EmiObject
+        void (*SetParent)(EObject* ctx, EObject* parent); // Update the parent of this EmiObject
+        void (*Destroy)(EObject* ctx); // Delete this EmiObject (TO BE IMPLEMENTED)
+        void (*SetName)(EObject* ctx, char* name); // Update the name of this EmiObject, the memory does not need to persist as this will be allocated
 
-    bool Visible; // Should this EmiObject be rendered? Affects child objects
-    uint8_t ZIndex; // Layering of this EmiObject for rendering (TO BE IMPLEMENTED)
+        bool Visible; // Should this EmiObject be rendered? Affects child objects
+        uint8_t ZIndex; // Layering of this EmiObject for rendering (TO BE IMPLEMENTED)
 
-    // Internals
+        EGeneric* _item; // Internal attached object, can be cast to ERect or other types if you know what you are accessing
 
-    void (*_render)(EObject* ctx, ETransform* parent, ETransform* out); // Internal render function, do not invoke
-#ifndef RELEASE
-    void (*_serialize_func)(BufferWriter* writer,EObject* self); // Internal serialize function, do not invoke
-    bool _nk_expanded; // Nuklear UI: whether children are expanded in the hierarchy panel
+        // Internals
+
+        EObject* _parent;
+        void (*_render)(EObject* ctx, ETransform* parent, ETransform* out);
+    #ifndef RELEASE
+        void (*_serialize_func)(BufferWriter* writer,EObject* self);
+        bool _nk_expanded;
+    #endif
+    };
+#else
+    struct EObject
+    {
+        char* Name; // The name of the object, do not modify directly.
+        EUDim2 Position; // The position of the object
+        EUDim2 Size; // The size of the object
+        float Rotation; // The rotation of the object (degrees)
+        Vector2 Anchor; // Anchor point of the object from 0 to 1: 0,0 = top left | 1,1 = bottom right
+
+        LinkedList* Children; // Child objects of this EmiObject
+        void (*SetParent)(EObject* ctx, EObject* parent); // Update the parent of this EmiObject
+        void (*Destroy)(EObject* ctx); // Delete this EmiObject (TO BE IMPLEMENTED)
+        void (*SetName)(EObject* ctx, char* name); // Update the name of this EmiObject, the memory does not need to persist as this will be allocated
+
+        bool Visible; // Should this EmiObject be rendered? Affects child objects
+        uint8_t ZIndex; // Layering of this EmiObject for rendering (TO BE IMPLEMENTED)
+
+        EGeneric* _item; // Internal attached object, can be cast to ERect or other types if you know what you are accessing
+    };
 #endif
-
-    EGeneric* _item; // Internal attached object, can be cast to ERect or other types if you know what you are accessing
-};
 
 EObject* EObject_Create(void* generic);

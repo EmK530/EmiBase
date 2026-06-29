@@ -18,7 +18,7 @@ static void DrawOverlay()
 
 int EmiMain()
 {
-    SetConfigFlags(FLAG_VSYNC_HINT);
+    //SetConfigFlags(FLAG_VSYNC_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
     int initResult = EmiBase_Init();

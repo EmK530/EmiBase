@@ -25,12 +25,6 @@ ERect* source = NULL;
 void SFunc (Prepare)(Scene *s) {
     EmiObject_Deserialize("object/output.eobj");
 
-    ERect* container = ERect_Create(NULL);
-    container->core->Position = UDim2_fromScale(0, 0);
-    container->core->Size = UDim2_fromScale(1, 1);
-    container->Color = Color32_new(0, 0, 0, 0);
-    container->core->SetName(container->core, "Background");
-
     eprintf("[Scene." SCENE_STR "] Prepared\n");
 }
 

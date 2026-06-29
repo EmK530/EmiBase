@@ -5,6 +5,7 @@
 extern EObject* nk_selected_object;
 
 #ifndef RELEASE
+    extern struct nk_context *ctx;
     int NuklearUI_Init();
     void NuklearUI_Draw();
     void NuklearUI_ResetHighlight();
