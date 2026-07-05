@@ -1,67 +1,67 @@
-CC_WIN = C:\\raylib\\w64devkit\\bin\\gcc
+CC = C:\\raylib\\w64devkit\\bin\\gcc
 
-BASE_CFLAGS = -O0 -s -IEmiBase/include -IGame/include -IEmiBase/external/raylib-nuklear/include
+CFLAGS := -O0 -s \
+         -IEmiBase/include \
+         -IGame/include \
+         -IEmiBase/external/raylib-nuklear/include \
+         -DGIT_HASH=\"$(shell git rev-parse --short HEAD | tr a-z A-Z)\" \
+         -DGIT_DIRTY=\"$(shell git diff --quiet || echo -dirty)\"
 
-GIT_HASH := $(shell git rev-parse --short HEAD | tr a-z A-Z)
-GIT_DIRTY := $(shell git diff --quiet || echo -dirty)
+RAYLIB_SRC ?= C:\\raylib\\raylib\\src
 
-RAYLIB_SRC_PATH       ?= C:\\raylib\\raylib\\src
-RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_SRC_PATH)
-RAYLIB_LIB_PATH       ?= $(RAYLIB_SRC_PATH)
+LDFLAGS = -L. -L$(RAYLIB_SRC) -Wl,--gc-sections,-eEmiMain
+LDLIBS  = -lraylib -lopengl32 -lgdi32 -ldwmapi
 
-LDFLAGS_WIN = -L. -L$(RAYLIB_LIB_PATH) -Wl,--gc-sections,-eEmiMain
-LDLIBS = -lraylib -lopengl32 -lgdi32 -ldwmapi
+OBJ_DIR    := build_temp
+RES_SOURCE := tools/resources.rc
+RES_FILE   := tools/resources.res
+UPX        := tools\upx.exe
+OUT        := EmiBase.exe
 
-OBJ_DIR := build_temp
-SRC_DIR := src
-RES_FILE := tools/resources.res
-UPX := tools\upx.exe
-
-OUT_NAME := EmiBase.exe
-UPX_NAME := EmiBase_UPX.exe
-
-EMIBASE_SRC_DIR := EmiBase/src
-GAME_SRC_DIR := Game/src
-
-EMIBASE_SRCS := $(wildcard $(EMIBASE_SRC_DIR)/*.c) \
-                $(wildcard $(EMIBASE_SRC_DIR)/**/*.c)
-
-GAME_SRCS := $(wildcard $(GAME_SRC_DIR)/*.c) \
-             $(wildcard $(GAME_SRC_DIR)/**/*.c)
-
-SRCS := $(EMIBASE_SRCS) $(GAME_SRCS)
-
-CFLAGS_WIN := $(BASE_CFLAGS) -DGIT_HASH=\"$(GIT_HASH)\" -DGIT_DIRTY=\"$(GIT_DIRTY)\"
-CFLAGS_WIN_REL := $(CFLAGS_WIN) -mwindows -DSUB_WINDOWS -DRELEASE
-# mwindows disables console and DSUB_WINDOWS disables internal logging!
-
+SRCS := $(wildcard EmiBase/src/*.c EmiBase/src/**/*.c Game/src/*.c Game/src/**/*.c)
 OBJS := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRCS))
 
+PSTR_SRC_DIR := $(OBJ_DIR)/pstr_src
+PSTR_OBJ_DIR := $(OBJ_DIR)/pstr_obj
+PSTR_SRCS    := $(patsubst %.c,$(PSTR_SRC_DIR)/%.c,$(SRCS))
+PSTR_OBJS    := $(patsubst %.c,$(PSTR_OBJ_DIR)/%.o,$(SRCS))
+
 MAKEFLAGS += -j32
+.PHONY: all debug release clean upx
+.SECONDARY: $(PSTR_SRCS)
+all: debug
 
-.PHONY: all clean upx
-
-all: compiledbg
-
-release: compile #upx
-
-compiledbg: $(OBJS) $(RES_FILE)
-	$(CC_WIN) $(CFLAGS_WIN) -o $(OUT_NAME) $^ $(LDFLAGS_WIN) $(LDLIBS)
+debug: $(OBJS) $(RES_FILE)
+	$(CC) $(CFLAGS) -o $(OUT) $^ $(LDFLAGS) $(LDLIBS)
 	python tools/pak_builder.py
-	./$(OUT_NAME)
+	@echo === Debug build success! ===
+	./$(OUT)
 
-compile: CFLAGS_WIN := $(CFLAGS_WIN_REL)
-compile: $(OBJS) $(RES_FILE)
-	$(CC_WIN) $(CFLAGS_WIN) -o $(OUT_NAME) $^ $(LDFLAGS_WIN) $(LDLIBS)
+release: CFLAGS += -mwindows -DSUB_WINDOWS -DRELEASE
+release: $(PSTR_OBJS) $(RES_FILE)
+	$(CC) $(CFLAGS) -o $(OUT) $^ $(LDFLAGS) $(LDLIBS)
 	python tools/pak_builder.py
+	@echo === Release build success! ===
 
 $(OBJ_DIR)/%.o: %.c
 	@mkdir -p "$(dir $@)"
-	$(CC_WIN) $(CFLAGS_WIN) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
-upx: compile
-	cmd /C "if exist $(UPX) $(UPX) --ultra-brute $(OUT_NAME) -o $(UPX_NAME)"
+$(PSTR_SRC_DIR)/%.c: %.c
+	@mkdir -p "$(dir $@)"
+	python tools/pstr_replacer.py $< $@
+
+$(PSTR_OBJ_DIR)/%.o: $(PSTR_SRC_DIR)/%.c
+	@mkdir -p "$(dir $@)"
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(RES_FILE): $(RES_SOURCE)
+	windres $(RES_SOURCE) -O coff -o $(RES_FILE)
+
+upx: release
+	cmd /C "if exist $(UPX) $(UPX) --ultra-brute $(OUT) -o EmiBase_UPX.exe"
 
 clean:
-	-rm -f $(OUT_NAME) $(UPX_NAME)
+	-rm -f $(OUT) EmiBase_UPX.exe
+	-rm -f $(RES_FILE)
 	-rm -rf $(OBJ_DIR)

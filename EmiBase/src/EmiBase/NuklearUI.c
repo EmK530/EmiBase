@@ -13,6 +13,8 @@ EObject* nk_selected_object = NULL;
 #define RAYLIB_NUKLEAR_IMPLEMENTATION
 #include "raylib-nuklear.h"
 
+void _emibase_internal_replacescene(Scene* target);
+
 struct nk_context *ctx = NULL;
 
 bool nk_workEarly  = 0;
@@ -65,6 +67,21 @@ static char     nk_name_buf[128]  = {0};
 static int      nk_name_buf_len   = 0;
 static bool     nk_name_editing   = false;
 static bool     nk_parent_picking = false;
+
+void NuklearUI_ResetHighlight()
+{
+    nk_selected_object = NULL;
+    nk_name_buf_owner  = NULL;
+    nk_name_buf[0]     = '\0';
+    nk_name_buf_len    = 0;
+    nk_name_editing    = false;
+}
+
+void NuklearUI_OnObjectDestroyed(EObject* object)
+{
+    if (nk_selected_object == object)
+        NuklearUI_ResetHighlight();
+}
 
 static void Workspace_DrawHierarchyNode(EObject* object, int depth)
 {
@@ -135,21 +152,6 @@ static void Workspace_DrawHierarchyNode(EObject* object, int depth)
             Workspace_DrawHierarchyNode(child, depth + 1);
         }
     }
-}
-
-void NuklearUI_ResetHighlight()
-{
-    nk_selected_object = NULL;
-    nk_name_buf_owner  = NULL;
-    nk_name_buf[0]     = '\0';
-    nk_name_buf_len    = 0;
-    nk_name_editing    = false;
-}
-
-void NuklearUI_OnObjectDestroyed(EObject* object)
-{
-    if (nk_selected_object == object)
-        NuklearUI_ResetHighlight();
 }
 
 static void Workspace_DrawRenamePopup(EObject* object)

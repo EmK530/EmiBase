@@ -8,6 +8,8 @@
 #include "EmiBase/PostProcess.h"
 #include "EmiBase/SceneUtils.h"
 #include "EmiBase/TextureManager.h"
+#include "EmiBase/ProtectedString.h"
+
 #include "EmiBase/easings.h"
 
 #include "Libraries/WinAPI.h"
@@ -104,5 +106,3 @@ void EmiBase_Cleanup();
 #else
     #define eprintf(...) ((void)0)
 #endif
-
-void _emibase_internal_replacescene(Scene* target);
