@@ -114,14 +114,12 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
         uint8_t name_len = BR_ReadU8(reader);
         if(name_len != 0)
             obj->Name = BR_ReadString(reader, name_len);
-        eprintf("%s\n", obj->Name);
         obj->Position = EUDim2_deserialize(reader);
         obj->Size = EUDim2_deserialize(reader);
         obj->Rotation = BR_ReadFloat(reader);
         obj->Anchor = Vector2_deserialize(reader);
         obj->Visible = BR_ReadU8(reader) == 1;
         obj->ZIndex = BR_ReadU8(reader);
-        eprintf("Object ZIndex is now: %i\n", obj->ZIndex);
         _internal_deserialize_recursively(reader, obj);
     }
 }
