@@ -8,30 +8,25 @@
     #include "Libraries/BufferWriter.h"
 #endif
 
-LinkedList* root_objects;
+LinkedObjectList root_objects;
 
 int EmiObject_Init()
 {
-    root_objects = LinkedList_create();
-    if(root_objects == NULL)
-        return 0;
-
+    root_objects = LinkedObjectList_create();
     eprintf("[EmiObject] Ready!\n");
     return 1;
 }
 
 // Draw EObjects recursively
+extern void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out);
 void Recursive_EObject_Draw(EObject* object, ETransform* parent)
 {
     ETransform current;
     if(!object->Visible)
         return;
-    object->_render(object, parent, &current);
-    LinkedList_foreach(object->Children, child)
-    {
-        EObject* co = (EObject*)child->item;
+    _eobject_internal_render(object, parent, &current);
+    LinkedObjectList_foreach(object->Children, co)
         Recursive_EObject_Draw(co, &current);
-    }
 }
 
 static EVector2i drawing_offset = {.X = 0, .Y = 0};
@@ -47,39 +42,35 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
         .Size     = {res.x, res.y},
         .Rotation = 0.0f
     };
-    LinkedList_foreach(root_objects, obj)
-    {
-        EObject* object = (EObject*)obj->item;
+    LinkedObjectList_foreach(root_objects, object)
         Recursive_EObject_Draw(object, &root);
-    }
     drawing_offset = (EVector2i){.X = 0, .Y = 0};
 }
 
-void _emiobject_internal_wipe_recursively(LinkedList* collection, EObject* object)
+void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject* object)
 {
-    LinkedList_foreach(collection, node)
-    {
-        EObject* child = (EObject*)node->item;
-        _emiobject_internal_wipe_recursively(child->Children, child);
-    }
-    LinkedList_dispose(&collection, NULL);
-    if(object != NULL)
-    {
-        LinkedList* target = object->_parent == NULL ? root_objects : object->_parent->Children;
-        LinkedList_remove(target, LinkedList_find(target, object), NULL);
+    LinkedObjectList_foreach(*collection, child)
+        _emiobject_internal_wipe_recursively(&child->Children, child);
+    LinkedObjectList_clear(collection);
+    if(object != NULL) {
+        if(object->_parent == NULL) {
+            LinkedObjectList_remove(&root_objects, object);
+        } else {
+            LinkedObjectList_remove(&object->_parent->Children, object);
+        }
         if(object == nk_selected_object)
             NuklearUI_ResetHighlight();
         MemFree(object->Name);
-        if(object->_item->_free_func != NULL)
-            object->_item->_free_func(object->_item);
+        if(object->_free_func != NULL)
+            object->_free_func(object);
         MemFree(object);
     }
 }
 
 void EmiObject_Wipe()
 {
-    _emiobject_internal_wipe_recursively(root_objects, NULL);
-    root_objects = LinkedList_create();
+    _emiobject_internal_wipe_recursively(&root_objects, NULL);
+    root_objects = LinkedObjectList_create();
 }
 
 void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
@@ -96,7 +87,7 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
             {
                 ERect* rect = ERect_Create(parent);
                 rect->Color = Color32_deserialize(reader);
-                obj = rect->core;
+                obj = (EObject*)rect;
                 break;
             }
             case 2:
@@ -104,11 +95,11 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
                 EImage* image = EImage_Create(parent);
                 uint8_t pathLen = BR_ReadU8(reader);
                 char* path = BR_ReadString(reader, pathLen);
-                image->SetTexture(image, path);
+                EImage_SetTexture(image, path);
                 MemFree(path);
                 image->BackgroundColor = Color32_deserialize(reader);
                 image->ImageColor = Color32_deserialize(reader);
-                obj = image->core;
+                obj = (EObject*)image;
                 break;
             }
             default:
@@ -123,12 +114,14 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
         uint8_t name_len = BR_ReadU8(reader);
         if(name_len != 0)
             obj->Name = BR_ReadString(reader, name_len);
+        eprintf("%s\n", obj->Name);
         obj->Position = EUDim2_deserialize(reader);
         obj->Size = EUDim2_deserialize(reader);
         obj->Rotation = BR_ReadFloat(reader);
         obj->Anchor = Vector2_deserialize(reader);
         obj->Visible = BR_ReadU8(reader) == 1;
         obj->ZIndex = BR_ReadU8(reader);
+        eprintf("Object ZIndex is now: %i\n", obj->ZIndex);
         _internal_deserialize_recursively(reader, obj);
     }
 }
@@ -171,13 +164,11 @@ void EmiObject_Deserialize(const char* filePath)
     void _internal_serialize_recursively(BufferWriter* writer, EObject* parent, EObject* target)
     {
         // Serialize ERect properties before EObject
-        target->_item->_serialize_func(writer, target->_item);
         target->_serialize_func(writer, target);
-        BW_WriteU32(writer, target->Children->size);
-        LinkedList_foreach(target->Children, child)
-        {
-            _internal_serialize_recursively(writer, target, child->item);
-        }
+        target->_serialize_func(writer, target);
+        BW_WriteU32(writer, target->Children.size);
+        LinkedObjectList_foreach(target->Children, child)
+            _internal_serialize_recursively(writer, target, child);
     }
 
     void EmiObject_Serialize()
@@ -185,12 +176,9 @@ void EmiObject_Deserialize(const char* filePath)
         BufferWriter* writer = BW_CreateWithCapacity(8192);
         BW_WriteString(writer, "EOBJ", 4);
         BW_WriteU8(writer, 1); // Version
-        BW_WriteU32(writer, root_objects->size);
-        LinkedList_foreach(root_objects, obj)
-        {
-            EObject* object = (EObject*)obj->item;
+        BW_WriteU32(writer, root_objects.size);
+        LinkedObjectList_foreach(root_objects, object)
             _internal_serialize_recursively(writer, NULL, object);
-        }
         BW_SaveToFile(writer, "Workspace.eobj");
     }
 #endif

@@ -3,10 +3,7 @@
 
 #define EOBJECT_FULL_SCOPE
 
-#include "EmiObject/EmiObject.h"
-#include "EmiObject/EImage.h"
-#include "EmiObject/Types.h"
-#include "EmiBase/ContentManager.h"
+#include "EmiBase.h"
 
 void _eimage_internal_render(EImage* image, ETransform* t)
 {
@@ -30,7 +27,7 @@ void _eimage_internal_render(EImage* image, ETransform* t)
     }
 }
 
-void _eimage_internal_settexture(EImage* image, const char* texturePath)
+void EImage_SetTexture(EImage* image, const char* texturePath)
 {
     if(image->_loadedTexturePath != NULL)
         MemFree(image->_loadedTexturePath);
@@ -63,6 +60,17 @@ void _eimage_internal_settexture(EImage* image, const char* texturePath)
     }
 #endif
 
+extern void _eobject_internal_initialize(EObject* object);
+
+#ifndef RELEASE
+    void _eimage_internal_free(EObject* item)
+    {
+        EImage* image = (EImage*)item;
+        MemFree(image->_loadedTexturePath);
+        image->_loadedTexturePath = NULL;
+    }
+#endif
+
 /*
     Creates a new Image EmiObject.
     Set parent to NULL to create as a root object.
@@ -76,23 +84,25 @@ EImage* EImage_Create(EObject* parent)
         return NULL;
     }
 
-    image->core = EObject_Create(image);
-    image->_free_func = NULL;
-    image->Render = _eimage_internal_render;
+    _eobject_internal_initialize((EObject*)image);
+
+    image->_render = (void(*)(EObject*, ETransform*))_eimage_internal_render; // swagging on that unsafe cast
 #ifndef RELEASE
-    image->_serialize_func = _eimage_internal_serialize;
+    image->_serialize_func = (void(*)(BufferWriter*, EObject*))_eimage_internal_serialize;
     image->_loadedTexturePath = NULL;
+    image->_free_func = _eimage_internal_free;
+#else
+    image->_free_func = NULL;
 #endif
-    image->SetTexture = _eimage_internal_settexture;
-    image->core->SetName(image->core, "EImage");
-    image->SetTexture(image, "image/EImageDefaultTexture.png");
+    EObject_SetName(image, "EImage");
+    EImage_SetTexture(image, "image/EImageDefaultTexture.png");
     
     image->innerType = 2;
     image->BackgroundColor = Color32_new(255, 255, 255, 0);
     image->ImageColor = Color32_new(255, 255, 255, 255);
 
     if(parent != NULL)
-        image->core->SetParent(image->core, parent);
+        EObject_SetParent(image, parent);
 
     return image;
 }

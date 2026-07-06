@@ -3,9 +3,9 @@
 #include "EmiObject/EObject.h"
 #include "EmiObject/ERect.h"
 #include "EmiObject/EImage.h"
-#include "Libraries/LinkedList.h"
+#include "EmiObject/LinkedObjectList.h"
 
-extern LinkedList* root_objects;
+extern LinkedObjectList root_objects;
 
 int EmiObject_Init();
 void EmiObject_Draw(int screenWidth, int screenHeight);

@@ -2,9 +2,7 @@
 
 #define EOBJECT_FULL_SCOPE
 
-#include "EmiObject/EmiObject.h"
-#include "EmiObject/ERect.h"
-#include "EmiObject/Types.h"
+#include "EmiBase.h"
 
 void _erect_internal_render(ERect* rect, ETransform* t)
 {
@@ -36,6 +34,8 @@ void _erect_internal_render(ERect* rect, ETransform* t)
     }
 #endif
 
+extern void _eobject_internal_initialize(EObject* object);
+
 /*
     Creates a new Rect EmiObject.
     Set parent to NULL to create as a root object.
@@ -49,13 +49,14 @@ ERect* ERect_Create(EObject* parent)
         return NULL;
     }
 
-    rect->core = EObject_Create(rect);
+    _eobject_internal_initialize((EObject*)rect);
+
     rect->_free_func = NULL;
-    rect->Render = _erect_internal_render;
+    rect->_render = (void(*)(EObject*, ETransform*))_erect_internal_render;
 #ifndef RELEASE
-    rect->_serialize_func = _erect_internal_serialize;
+    rect->_serialize_func = (void(*)(BufferWriter*, EObject*))_erect_internal_serialize;
 #endif
-    rect->core->SetName(rect->core, "ERect");
+    EObject_SetName(rect, "ERect");
     
     rect->innerType = 1;
     rect->Color.r = 255;
@@ -64,7 +65,7 @@ ERect* ERect_Create(EObject* parent)
     rect->Color.a = 255;
 
     if(parent != NULL)
-        rect->core->SetParent(rect->core, parent);
+        EObject_SetParent(rect, parent);
 
     return rect;
 }

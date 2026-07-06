@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "EmiObject/Types.h"
-#include "Libraries/LinkedList.h"
+#include "EmiObject/LinkedObjectList.h"
 
 #ifndef RELEASE
     #include "Libraries/BufferWriter.h"
@@ -16,8 +16,13 @@
 #define SDEG2RAD(deg) ((deg) * (M_PI / 180.0))
 #define SRAD2DEG(rad) ((rad) * (180.0 / M_PI))
 
-typedef struct EObject EObject;
-typedef struct EGeneric EGeneric;
+#ifndef RELEASE
+    #define _EOBJECT_DEBUG_FIELDS \
+        void (*_serialize_func)(BufferWriter* writer, EObject* self); \
+        bool _nk_expanded;
+#else
+    #define _EOBJECT_DEBUG_FIELDS
+#endif
 
 typedef struct
 {
@@ -26,64 +31,30 @@ typedef struct
     float Rotation;
 } ETransform;
 
-struct EGeneric
+typedef struct EObject EObject;
+
+#define EOBJECT_BASE_TYPES \
+    char* Name; \
+    EObject* _parent; \
+    EObject* _node_next; \
+    EObject* _node_prev; \
+    void (*_render)(EObject* ctx, ETransform* t); \
+    void (*_free_func)(EObject* ctx); \
+    _EOBJECT_DEBUG_FIELDS \
+    EUDim2 Position; \
+    EUDim2 Size; \
+    Vector2 Anchor; \
+    LinkedObjectList Children; \
+    float Rotation; \
+    bool Visible; \
+    uint8_t ZIndex; \
+    uint8_t innerType;
+
+struct EObject
 {
-    EObject* core; // Access the root EmiObject properties through this reference
-    uint8_t innerType; // Internal type ID for NuklearUI, do not modify
-    void (*Render)(EGeneric* self, ETransform* t); // Internal render function, do not invoke
-    void (*_free_func)(EGeneric* self); // Internal free function, do not invoke
-#ifndef RELEASE
-    void (*_serialize_func)(BufferWriter* writer, EGeneric* self); // Internal serialize function, do not invoke
-#endif
+    EOBJECT_BASE_TYPES
 };
 
-#ifdef EOBJECT_FULL_SCOPE
-    struct EObject
-    {
-        char* Name; // The name of the object, do not modify directly.
-        EUDim2 Position; // The position of the object
-        EUDim2 Size; // The size of the object
-        float Rotation; // The rotation of the object (degrees)
-        Vector2 Anchor; // Anchor point of the object from 0 to 1: 0,0 = top left | 1,1 = bottom right
-
-        LinkedList* Children; // Child objects of this EmiObject
-        void (*SetParent)(EObject* ctx, EObject* parent); // Update the parent of this EmiObject
-        void (*Destroy)(EObject* ctx); // Delete this EmiObject (TO BE IMPLEMENTED)
-        void (*SetName)(EObject* ctx, char* name); // Update the name of this EmiObject, the memory does not need to persist as this will be allocated
-
-        bool Visible; // Should this EmiObject be rendered? Affects child objects
-        uint8_t ZIndex; // Layering of this EmiObject for rendering (TO BE IMPLEMENTED)
-
-        EGeneric* _item; // Internal attached object, can be cast to ERect or other types if you know what you are accessing
-
-        // Internals
-
-        EObject* _parent;
-        void (*_render)(EObject* ctx, ETransform* parent, ETransform* out);
-    #ifndef RELEASE
-        void (*_serialize_func)(BufferWriter* writer,EObject* self);
-        bool _nk_expanded;
-    #endif
-    };
-#else
-    struct EObject
-    {
-        char* Name; // The name of the object, do not modify directly.
-        EUDim2 Position; // The position of the object
-        EUDim2 Size; // The size of the object
-        float Rotation; // The rotation of the object (degrees)
-        Vector2 Anchor; // Anchor point of the object from 0 to 1: 0,0 = top left | 1,1 = bottom right
-
-        LinkedList* Children; // Child objects of this EmiObject
-        void (*SetParent)(EObject* ctx, EObject* parent); // Update the parent of this EmiObject
-        void (*Destroy)(EObject* ctx); // Delete this EmiObject (TO BE IMPLEMENTED)
-        void (*SetName)(EObject* ctx, char* name); // Update the name of this EmiObject, the memory does not need to persist as this will be allocated
-
-        bool Visible; // Should this EmiObject be rendered? Affects child objects
-        uint8_t ZIndex; // Layering of this EmiObject for rendering (TO BE IMPLEMENTED)
-
-        EGeneric* _item; // Internal attached object, can be cast to ERect or other types if you know what you are accessing
-    };
-#endif
-
-EObject* EObject_Create(void* generic);
+void EObject_SetParent(void* ctx, EObject* parent);
+void EObject_Destroy(void* ctx);
+void EObject_SetName(void* object, char* name);

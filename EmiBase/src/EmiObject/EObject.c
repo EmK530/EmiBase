@@ -7,44 +7,47 @@
 #include "EmiObject/EmiObject.h"
 #include "EmiObject/EObject.h"
 #include "EmiObject/Types.h"
-#include "Libraries/LinkedList.h"
+#include "EmiObject/LinkedObjectList.h"
 
-void _eobject_internal_setparent(EObject* ctx, EObject* parent)
+void EObject_SetParent(void* object, EObject* parent)
 {
+    if(object == NULL)
+        return;
+    EObject* ctx = (EObject*)object;
     if(parent != NULL)
     {
         if(ctx->_parent != NULL)
         {
-            Node* node = LinkedList_find(ctx->_parent->Children, ctx);
-            if(node != NULL)
-                LinkedList_remove(ctx->_parent->Children, node, NULL);
+            LinkedObjectList_remove(&ctx->_parent->Children, ctx);
         } else {
-            Node* node = LinkedList_find(root_objects, ctx);
-            if(node != NULL)
-                LinkedList_remove(root_objects, node, NULL);
+            LinkedObjectList_remove(&root_objects, ctx);
         }
         ctx->_parent = parent;
-        LinkedList_append(parent->Children, ctx);
+        LinkedObjectList_append(&parent->Children, ctx);
     } else {
         if(ctx->_parent != NULL)
         {
-            Node* node = LinkedList_find(ctx->_parent->Children, ctx);
-            if(node != NULL)
-                LinkedList_remove(ctx->_parent->Children, node, NULL);
+            LinkedObjectList_remove(&ctx->_parent->Children, ctx);
             ctx->_parent = NULL;
-            LinkedList_append(root_objects, ctx);
+            LinkedObjectList_append(&root_objects, ctx);
         }
     }
 }
 
-extern void _emiobject_internal_wipe_recursively(LinkedList* collection, EObject* object);
-void _eobject_internal_destroy(EObject* ctx)
+extern void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject* object);
+void EObject_Destroy(void* object)
 {
-    _emiobject_internal_wipe_recursively(ctx->Children, ctx);
+    if(object == NULL)
+        return;
+    EObject* ctx = (EObject*)object;
+    _emiobject_internal_wipe_recursively(&ctx->Children, ctx);
 }
 
-void _eobject_internal_setname(EObject* ctx, char* name)
+void EObject_SetName(void* object, char* name)
 {
+    if(object == NULL)
+        return;
+    EObject* ctx = (EObject*)object;
     if(name == NULL)
     {
         if(ctx->Name != NULL)
@@ -73,7 +76,7 @@ void _eobject_internal_setname(EObject* ctx, char* name)
 
 void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
 {
-    if(!ctx->Visible || ctx->_item == NULL)
+    if(!ctx->Visible || ctx->_render == NULL)
         return;
         
     float xScale = 0.0f;
@@ -103,7 +106,7 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
 
     out->Rotation = parent->Rotation + ctx->Rotation;
 
-    ctx->_item->Render(ctx->_item, out);
+    ctx->_render(ctx, out);
 }
 
 #ifndef RELEASE
@@ -126,46 +129,22 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
     }
 #endif
 
-/*
-    Creates a new blank EmiObject. This is internal and should not be used manually.
-    Set parent to NULL to create as a root object.
-*/
-EObject* EObject_Create(void* generic)
-{
-    if(!generic)
-    {
-        eprintf("Received null or invalid generic pointer for EObject_Create\n");
-        return NULL;
-    }
-    EObject* object = (EObject*)MemAlloc(sizeof(EObject));
-    if(!object)
-    {
-        eprintf("Out of memory allocating EObject\n");
-        return NULL;
-    }
 
+void _eobject_internal_initialize(EObject* object)
+{
     object->Name = NULL;
     object->Position = UDim2_new(0.0f, 100, 0.0f, 100);
     object->Size = UDim2_new(0.0f, 100, 0.0f, 100);
     object->Anchor = Vector2_new(0.0f, 0.0f);
     object->Rotation = 0.0f;
     object->_parent = NULL;
-    object->Children = LinkedList_create();
+    object->Children = LinkedObjectList_create();
     object->Visible = true;
     object->ZIndex = 0;
 
-    object->SetName = _eobject_internal_setname;
-    object->SetParent = _eobject_internal_setparent;
-    object->Destroy = _eobject_internal_destroy;
-    object->_render = _eobject_internal_render;
 #ifndef RELEASE
-    object->_serialize_func = _eobject_internal_serialize;
     object->_nk_expanded = false;
 #endif
-    
-    object->_item = (EGeneric*)generic;
 
-    LinkedList_append(root_objects, object);
-
-    return object;
+    LinkedObjectList_append(&root_objects, object);
 }
