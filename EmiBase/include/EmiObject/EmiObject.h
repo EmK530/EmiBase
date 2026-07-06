@@ -1,7 +1,8 @@
 #pragma once
 
-#include "EObject.h"
-#include "ERect.h"
+#include "EmiObject/EObject.h"
+#include "EmiObject/ERect.h"
+#include "EmiObject/EImage.h"
 #include "Libraries/LinkedList.h"
 
 extern LinkedList* root_objects;

@@ -62,19 +62,25 @@ int NuklearUI_Init()
     return 1;
 }
 
-static EObject* nk_name_buf_owner = NULL;
-static char     nk_name_buf[128]  = {0};
-static int      nk_name_buf_len   = 0;
-static bool     nk_name_editing   = false;
-static bool     nk_parent_picking = false;
+static EObject* nk_name_buf_owner   = NULL;
+static char     nk_name_buf[128]    = {0};
+static char     nk_texture_buf[128] = {0};
+static int      nk_name_buf_len     = 0;
+static int      nk_texture_buf_len  = 0;
+static bool     nk_name_editing     = false;
+static bool     nk_texture_editing  = false;
+static bool     nk_parent_picking   = false;
 
 void NuklearUI_ResetHighlight()
 {
     nk_selected_object = NULL;
     nk_name_buf_owner  = NULL;
     nk_name_buf[0]     = '\0';
+    nk_texture_buf[0]  = '\0';
     nk_name_buf_len    = 0;
+    nk_texture_buf_len = 0;
     nk_name_editing    = false;
+    nk_texture_editing = false;
 }
 
 void NuklearUI_OnObjectDestroyed(EObject* object)
@@ -156,33 +162,46 @@ static void Workspace_DrawHierarchyNode(EObject* object, int depth)
 
 static void Workspace_DrawRenamePopup(EObject* object)
 {
-    if (!nk_name_editing || object == NULL)
+    if ((!nk_name_editing && !nk_texture_editing) || object == NULL)
         return;
 
     struct nk_rect content = nk_window_get_content_region(ctx);
     struct nk_command_buffer* canvas = nk_window_get_canvas(ctx);
     nk_fill_rect(canvas, content, 0.0f, nk_rgba(0, 0, 0, 120));
 
-    if (nk_popup_begin(ctx, NK_POPUP_STATIC, "Rename",
+    if (nk_popup_begin(ctx, NK_POPUP_STATIC, nk_texture_editing ? "Change Texture" : "Rename",
         NK_WINDOW_TITLE | NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR,
         nk_rect(10, 10, 200, 105)))
     {
         nk_layout_row_dynamic(ctx, 22, 1);
-        nk_flags event = nk_edit_string(ctx,
-            NK_EDIT_FIELD | NK_EDIT_SIG_ENTER,
-            nk_name_buf, &nk_name_buf_len, 128, nk_filter_default);
+        nk_flags event;
+        if(nk_texture_editing) {
+            event = nk_edit_string(ctx, NK_EDIT_FIELD | NK_EDIT_SIG_ENTER, nk_texture_buf, &nk_texture_buf_len, 128, nk_filter_default);
+        } else {
+            event = nk_edit_string(ctx, NK_EDIT_FIELD | NK_EDIT_SIG_ENTER, nk_name_buf, &nk_name_buf_len, 128, nk_filter_default);
+        }
 
         nk_layout_row_dynamic(ctx, 22, 2);
         if (nk_button_label(ctx, "OK") || (event & NK_EDIT_COMMITED))
         {
-            nk_name_buf[nk_name_buf_len] = '\0';
-            object->SetName(object, nk_name_buf);
+            if(nk_texture_editing)
+            {
+                nk_texture_buf[nk_texture_buf_len] = '\0';
+                // i might regret this in the future
+                EImage* image = (EImage*)object->_item;
+                image->SetTexture(image, nk_texture_buf);
+            } else {
+                nk_name_buf[nk_name_buf_len] = '\0';
+                object->SetName(object, nk_name_buf);
+            }
             nk_name_editing = false;
+            nk_texture_editing = false;
             nk_popup_close(ctx);
         }
         if (nk_button_label(ctx, "Cancel"))
         {
             nk_name_editing = false;
+            nk_texture_editing = false;
             nk_popup_close(ctx);
         }
 
@@ -191,6 +210,7 @@ static void Workspace_DrawRenamePopup(EObject* object)
     else
     {
         nk_name_editing = false;
+        nk_texture_editing = false;
     }
 }
 
@@ -211,6 +231,17 @@ static void Workspace_DrawProperties(EObject* object)
         {
             nk_name_buf[0]  = '\0';
             nk_name_buf_len = 0;
+        }
+        if(object->_item->innerType == 2)
+        {
+            EImage* image = (EImage*)object->_item;
+            nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
+            if (nk_texture_buf_len > 127) nk_texture_buf_len = 127;
+            memcpy(nk_texture_buf, image->_loadedTexturePath, nk_texture_buf_len);
+            nk_texture_buf[nk_texture_buf_len] = '\0';
+        } else {
+            nk_texture_buf[0]  = '\0';
+            nk_texture_buf_len = 0;
         }
     }
 
@@ -277,31 +308,79 @@ static void Workspace_DrawProperties(EObject* object)
     nk_layout_row_dynamic(ctx, 22, 1);
     nk_property_int(ctx, "#", 0, (int*)&object->ZIndex, 255, 1, 1);
 
-    if (object->_item != NULL && object->_item->innerType == 1)
+    if (object->_item != NULL)
     {
-        ERect* rect = (ERect*)object->_item;
+        switch(object->_item->innerType)
+        {
+            case 1: // ERect
+            {
+                ERect* rect = (ERect*)object->_item;
+                nk_layout_row_dynamic(ctx, 8, 1);
+                nk_label(ctx, "", NK_TEXT_LEFT);
+                nk_layout_row_dynamic(ctx, 18, 1);
+                nk_label(ctx, "-- ERect Properties --", NK_TEXT_CENTERED);
+                nk_layout_row_dynamic(ctx, 18, 1);
+                nk_label(ctx, "Color", NK_TEXT_LEFT);
+                struct nk_colorf nk_col = {
+                    rect->Color.r / 255.0f,
+                    rect->Color.g / 255.0f,
+                    rect->Color.b / 255.0f,
+                    rect->Color.a / 255.0f
+                };
+                nk_layout_row_dynamic(ctx, 200, 1);
+                nk_col = nk_color_picker(ctx, nk_col, NK_RGBA);
+                rect->Color.r = (uint8_t)(nk_col.r * 255.0f);
+                rect->Color.g = (uint8_t)(nk_col.g * 255.0f);
+                rect->Color.b = (uint8_t)(nk_col.b * 255.0f);
+                rect->Color.a = (uint8_t)(nk_col.a * 255.0f);
+                break;
+            }
 
-        nk_layout_row_dynamic(ctx, 8, 1);
-        nk_label(ctx, "", NK_TEXT_LEFT);
-        nk_layout_row_dynamic(ctx, 18, 1);
-        nk_label(ctx, "-- ERect --", NK_TEXT_CENTERED);
-        nk_layout_row_dynamic(ctx, 18, 1);
-        nk_label(ctx, "Color", NK_TEXT_LEFT);
+            case 2: // EImage
+            {
+                EImage* image = (EImage*)object->_item;
+                nk_layout_row_dynamic(ctx, 8, 1);
+                nk_label(ctx, "", NK_TEXT_LEFT);
+                nk_layout_row_dynamic(ctx, 18, 1);
+                nk_label(ctx, "-- EImage Properties --", NK_TEXT_CENTERED);
 
-        struct nk_colorf nk_col = {
-            rect->Color.r / 255.0f,
-            rect->Color.g / 255.0f,
-            rect->Color.b / 255.0f,
-            rect->Color.a / 255.0f
-        };
+                nk_layout_row_dynamic(ctx, 18, 1);
+                nk_label(ctx, "Texture", NK_TEXT_LEFT);
+                nk_layout_row_dynamic(ctx, 22, 2);
+                nk_label(ctx, image->_loadedTexturePath ? image->_loadedTexturePath : "(unknown)", NK_TEXT_LEFT);
+                if (nk_button_label(ctx, "Change"))
+                    nk_texture_editing = true;
 
-        nk_layout_row_dynamic(ctx, 200, 1);
-        nk_col = nk_color_picker(ctx, nk_col, NK_RGBA);
-
-        rect->Color.r = (uint8_t)(nk_col.r * 255.0f);
-        rect->Color.g = (uint8_t)(nk_col.g * 255.0f);
-        rect->Color.b = (uint8_t)(nk_col.b * 255.0f);
-        rect->Color.a = (uint8_t)(nk_col.a * 255.0f);
+                nk_layout_row_dynamic(ctx, 18, 1);
+                nk_label(ctx, "Image Tint", NK_TEXT_LEFT);
+                struct nk_colorf nk_col = {
+                    image->ImageColor.r / 255.0f,
+                    image->ImageColor.g / 255.0f,
+                    image->ImageColor.b / 255.0f,
+                    image->ImageColor.a / 255.0f
+                };
+                nk_layout_row_dynamic(ctx, 150, 1);
+                nk_col = nk_color_picker(ctx, nk_col, NK_RGBA);
+                image->ImageColor.r = (uint8_t)(nk_col.r * 255.0f);
+                image->ImageColor.g = (uint8_t)(nk_col.g * 255.0f);
+                image->ImageColor.b = (uint8_t)(nk_col.b * 255.0f);
+                image->ImageColor.a = (uint8_t)(nk_col.a * 255.0f);
+                nk_layout_row_dynamic(ctx, 36, 1);
+                nk_label(ctx, "Background Color", NK_TEXT_LEFT);
+                struct nk_colorf nk_col2 = {
+                    image->BackgroundColor.r / 255.0f,
+                    image->BackgroundColor.g / 255.0f,
+                    image->BackgroundColor.b / 255.0f,
+                    image->BackgroundColor.a / 255.0f
+                };
+                nk_layout_row_dynamic(ctx, 150, 1);
+                nk_col2 = nk_color_picker(ctx, nk_col2, NK_RGBA);
+                image->BackgroundColor.r = (uint8_t)(nk_col2.r * 255.0f);
+                image->BackgroundColor.g = (uint8_t)(nk_col2.g * 255.0f);
+                image->BackgroundColor.b = (uint8_t)(nk_col2.b * 255.0f);
+                image->BackgroundColor.a = (uint8_t)(nk_col2.a * 255.0f);
+            }
+        }
     }
 }
 
@@ -349,7 +428,12 @@ static void Workspace_DrawWorkspace()
                 if (nk_contextual_item_label(ctx, "Create new ERect", NK_TEXT_LEFT))
                 {
                     ERect* rect = ERect_Create(nk_selected_object);
-                    rect->core->SetName(rect->core, "ERect");
+                    if (nk_selected_object != NULL)
+                        nk_selected_object->_nk_expanded = true;
+                }
+                if (nk_contextual_item_label(ctx, "Create new EImage", NK_TEXT_LEFT))
+                {
+                    EImage* image = EImage_Create(nk_selected_object);
                     if (nk_selected_object != NULL)
                         nk_selected_object->_nk_expanded = true;
                 }
@@ -400,7 +484,7 @@ static void Workspace_DrawWorkspace()
     bounds.y = NK_CLAMP(20, bounds.y, sh - bounds.h);
     nk_window_set_bounds(ctx, "Workspace", bounds);
 
-    if (nk_name_editing)
+    if (nk_name_editing || nk_texture_editing)
         Workspace_DrawRenamePopup(nk_name_buf_owner);
 
     nk_end(ctx);

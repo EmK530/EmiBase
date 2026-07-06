@@ -79,12 +79,16 @@
 
 /* DO NOT EDIT BEYOND THIS POINT */
 
-int EmiBase_Init();
-void EmiBase_BeginDrawing();
-void EmiBase_EndDrawing(void (*overlay)()); // Run at the end of your frame, overlay can be set to draw topmost graphics unaffected by shading.
-void EmiBase_StepScenes(); // Execute scene code and draw EmiObjects
-void EmiBase_ProcessInput(); // Sends queued input signals to the active scenes.
-void EmiBase_Cleanup();
+#ifdef CONTEXT_EMIMAIN
+    int EmiBase_Init();
+    void EmiBase_BeginDrawing();
+    void EmiBase_EndDrawing(void (*overlay)()); // Run at the end of your frame, overlay can be set to draw topmost graphics unaffected by shading.
+    void EmiBase_StepScenes(); // Execute scene code and draw EmiObjects
+    void EmiBase_ProcessInput(); // Sends queued input signals to the active scenes.
+    void EmiBase_Cleanup();
+#endif
+void EmiBase_Detach(); // EmiBase-safe version of EndDrawing to transfer full rendering control to a scene. Remember to call Attach after you are done.
+void EmiBase_Attach(); // Return rendering control back to EmiBase, needs to be called before the end of a scene if you ran Detach.
 
 #ifndef RELEASE
     void EmiObject_Serialize();

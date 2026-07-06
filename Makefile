@@ -1,4 +1,4 @@
-CC = C:\\raylib\\w64devkit\\bin\\gcc
+CC = C:/raylib/w64devkit/bin/gcc
 
 CFLAGS := -O0 -s \
          -IEmiBase/include \
@@ -10,7 +10,7 @@ CFLAGS := -O0 -s \
 RAYLIB_SRC ?= C:\\raylib\\raylib\\src
 
 LDFLAGS = -L. -L$(RAYLIB_SRC) -Wl,--gc-sections,-eEmiMain
-LDLIBS  = -lraylib -lopengl32 -lgdi32 -ldwmapi
+LDLIBS  = -lraylib -lopengl32 -lgdi32 -ldwmapi -lwinmm
 
 OBJ_DIR    := build_temp
 RES_SOURCE := tools/resources.rc

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#define CONTEXT_EMIMAIN
 #include "EmiBase.h"
 
 // Road ends here :)

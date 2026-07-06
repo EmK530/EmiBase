@@ -18,6 +18,7 @@ typedef struct Scene {
     const char *name;
     void (*Init)(struct Scene *s);
     void (*Prepare)(struct Scene *s);
+    void (*Cleanup)(struct Scene *s);
     void (*OnInput)(struct Scene *s, int e);
     const SceneResult (*WorkEarly)(struct Scene *s, double deltaTime); // return name of next scene, or NULL
     const SceneResult (*WorkLate)(struct Scene *s, double deltaTime); // return name of next scene, or NULL
@@ -30,6 +31,7 @@ typedef struct Scene {
         .name = #scene_name, \
         .Init = scene_name##_Init, \
         .Prepare = scene_name##_Prepare, \
+        .Cleanup = scene_name##_Cleanup, \
         .OnInput = scene_name##_OnInput, \
         .WorkEarly = scene_name##_WorkEarly, \
         .WorkLate = scene_name##_WorkLate, \

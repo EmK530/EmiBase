@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "rlgl.h"
 #include "EmiBase.h"
 #include "EmiBase/CrashHandler.h"
 #include "EmiBase/NuklearUI.h" // Don't worry, it's not part of Release.
@@ -8,6 +9,7 @@
 #if SUPPORTS_POSTPROCESS == 1
 RenderTexture2D target;
 #endif
+bool detached = false;
 
 extern int main();
 
@@ -93,10 +95,37 @@ void EmiBase_BeginDrawing()
 #endif
 }
 
+void EmiBase_Detach()
+{
+    if(detached)
+    {
+        eprintf("[EmiBase] Attempt to detach renderer when already detached!");
+        return;
+    }
+    detached = true;
+    rlDrawRenderBatchActive();
+}
+
+void EmiBase_Attach()
+{
+    if(!detached)
+    {
+        eprintf("[EmiBase] Attempt to attach renderer when already attached!");
+        return;
+    }
+    detached = false;
+#if SUPPORTS_POSTPROCESS == 1
+    BeginTextureMode(target);
+#else
+    rlLoadIdentity();
+    rlMultMatrixf(MatrixToFloat(CORE.Window.screenScale)); 
+#endif
+}
+
 #ifndef RELEASE
     void (*overlayRemember)() = NULL;
     void doubleDraw() {
-        if(nk_overlay == 0)
+        if(nk_overlay == 0 && overlayRemember != NULL)
             overlayRemember();
         _crashhandler_internal_sendstatus(4);
         NuklearUI_Draw();
@@ -112,7 +141,7 @@ void EmiBase_BeginDrawing()
             overlayRemember = overlay;
             PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, doubleDraw);
     #else
-            if(nk_overlay == 0)
+            if(nk_overlay == 0 && overlay != NULL)
                 overlay();
             _crashhandler_internal_sendstatus(4);
             NuklearUI_Draw();
@@ -145,6 +174,8 @@ void _emibase_internal_replacescene(Scene* target)
         Scene* scene = registered_scenes[i];
         if(scene == NULL)
             break;
+        if(scene->active)
+            scene->Cleanup(scene);
         scene->active = false;
     }
     EmiObject_Wipe();
@@ -164,6 +195,11 @@ void EmiBase_StepScenes()
             if (s && s->WorkEarly) {
                 _crashhandler_internal_sendstring(s->name);
                 SceneResult res = s->WorkEarly(s, deltaTime);
+                if(detached)
+                {
+                    eprintf("[EmiBase] Scene '%s' ended without re-attaching the renderer in WorkEarly!\n", s->name);
+                    EmiBase_Attach();
+                }
                 _crashhandler_internal_sendstatus(0);
 
                 if (res.action != SCENE_NONE && res.name) {
@@ -201,6 +237,11 @@ void EmiBase_StepScenes()
             if (s && s->WorkLate) {
                 _crashhandler_internal_sendstring(s->name);
                 SceneResult res = s->WorkLate(s, deltaTime);
+                if(detached)
+                {
+                    eprintf("[EmiBase] Scene '%s' ended without re-attaching the renderer in WorkLate!\n", s->name);
+                    EmiBase_Attach();
+                }
                 _crashhandler_internal_sendstatus(0);
                 if (res.action != SCENE_NONE && res.name) {
                     Scene *new_scene = find_scene(res.name);

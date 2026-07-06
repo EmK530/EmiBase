@@ -99,6 +99,18 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
                 obj = rect->core;
                 break;
             }
+            case 2:
+            {
+                EImage* image = EImage_Create(parent);
+                uint8_t pathLen = BR_ReadU8(reader);
+                char* path = BR_ReadString(reader, pathLen);
+                image->SetTexture(image, path);
+                MemFree(path);
+                image->BackgroundColor = Color32_deserialize(reader);
+                image->ImageColor = Color32_deserialize(reader);
+                obj = image->core;
+                break;
+            }
             default:
                 success = 0;
         }

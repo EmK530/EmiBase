@@ -43,6 +43,7 @@ void PushScene(Scene *s) {
 void PopScene() {
     if(scene_stack.top >= 0) {
         Scene* tgt = scene_stack.scenes[scene_stack.top--];
+        tgt->Cleanup(tgt);
         tgt->active = false;
         scene_stack.scenes[scene_stack.top--] = NULL;
     } else {

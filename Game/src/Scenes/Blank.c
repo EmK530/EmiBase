@@ -9,6 +9,10 @@ void SFunc (Prepare)(Scene *s) {
     eprintf("[Scene." SCENE_STR "] Prepared\n");
 }
 
+void SFunc (Cleanup)(Scene *s) {
+    eprintf("[Scene." SCENE_STR "] Cleaning up...\n");
+}
+
 void SFunc (OnInput)(Scene *s, int e) {
 
 }
