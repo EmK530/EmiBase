@@ -42,10 +42,11 @@ void PushScene(Scene *s) {
 
 void PopScene() {
     if(scene_stack.top >= 0) {
-        Scene* tgt = scene_stack.scenes[scene_stack.top--];
+        int topdec = scene_stack.top--;
+        Scene* tgt = scene_stack.scenes[topdec];
         tgt->Cleanup(tgt);
         tgt->active = false;
-        scene_stack.scenes[scene_stack.top--] = NULL;
+        scene_stack.scenes[topdec] = NULL;
     } else {
         fprintf(stderr, "Error: scene stack underflow\n");
     }
