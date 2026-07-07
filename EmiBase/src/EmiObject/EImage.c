@@ -29,12 +29,14 @@ void _eimage_internal_render(EImage* image, ETransform* t)
 
 void EImage_SetTexture(EImage* image, const char* texturePath)
 {
+    size_t dataSize = strlen(texturePath) + 1;
+#ifndef RELEASE
     if(image->_loadedTexturePath != NULL)
         MemFree(image->_loadedTexturePath);
-    size_t dataSize = strlen(texturePath) + 1;
     image->_loadedTexturePath = MemAlloc(dataSize);
     if(image->_loadedTexturePath != NULL)
         memcpy(image->_loadedTexturePath, texturePath, dataSize);
+#endif
     if(image->isTextureValid)
     {
         UnloadTexture(image->_loadedTexture);
