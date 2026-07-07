@@ -6,6 +6,7 @@ void SFunc (Init)(Scene *s) {
 }
 
 void SFunc (Prepare)(Scene *s) {
+    EmiObject_Wipe();
     eprintf("[Scene." SCENE_STR "] Prepared\n");
 }
 

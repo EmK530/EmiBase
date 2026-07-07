@@ -23,6 +23,7 @@ void SFunc (Init)(Scene *s) {
 ERect* source = NULL;
 
 void SFunc (Prepare)(Scene *s) {
+    EmiObject_Wipe();
     EmiObject_Deserialize("object/Demo.eobj");
 
     eprintf("[Scene." SCENE_STR "] Prepared\n");

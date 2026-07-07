@@ -256,9 +256,7 @@ void EmiBase_StepScenes()
                         if (res.action == SCENE_PUSH) {
                             PushScene(new_scene);
                         } else if (res.action == SCENE_REPLACE) {
-                            PopScene();
-                            EmiObject_Wipe();
-                            PushScene(new_scene);
+                            _emibase_internal_replacescene(new_scene);
                         } else if (res.action == SCENE_POP) {
                             PopScene();
                         }
