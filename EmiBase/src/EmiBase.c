@@ -73,7 +73,6 @@ void EmiBase_ProcessInput()
     int key;
     while ((key = GetKeyPressed()) != 0)
     {
-        printf("top = %i\n", scene_stack.top);
         for (int i = 0; i <= scene_stack.top; i++) {
             Scene *s = scene_stack.scenes[i];
             if (s && s->OnInput) {
