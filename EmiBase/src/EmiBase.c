@@ -235,7 +235,7 @@ void EmiBase_StepScenes()
 
     _crashhandler_internal_sendstatus(1);
 
-    if(!EmiObject_HasDrawnBefore)
+    if(!EmiObject_HasDrawnBefore && EmiObject_AutoDraw)
         EmiObject_Draw(screenWidth, screenHeight);
 
     _crashhandler_internal_sendstatus(0);

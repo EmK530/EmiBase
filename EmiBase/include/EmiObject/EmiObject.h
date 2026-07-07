@@ -6,6 +6,7 @@
 #include "EmiObject/LinkedObjectList.h"
 
 extern LinkedObjectList root_objects;
+extern bool EmiObject_AutoDraw;
 
 int EmiObject_Init();
 void EmiObject_Draw(int screenWidth, int screenHeight);

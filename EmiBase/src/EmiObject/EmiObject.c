@@ -36,6 +36,7 @@ void Recursive_EObject_Draw(EObject* object, ETransform* parent)
 }
 
 extern bool EmiObject_HasDrawnBefore;
+bool EmiObject_AutoDraw = true;
 static EVector2i drawing_offset = {.X = 0, .Y = 0};
 void EmiObject_SetDrawOffset(EVector2i value)
 {
