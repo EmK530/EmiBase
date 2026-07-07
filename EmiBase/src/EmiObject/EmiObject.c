@@ -83,14 +83,14 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
         EObject* obj = NULL;
         switch(obj_type)
         {
-            case 1:
+            case EObjectType_ERect:
             {
                 ERect* rect = ERect_Create(parent);
                 rect->Color = Color32_deserialize(reader);
                 obj = (EObject*)rect;
                 break;
             }
-            case 2:
+            case EObjectType_EImage:
             {
                 EImage* image = EImage_Create(parent);
                 uint8_t pathLen = BR_ReadU8(reader);

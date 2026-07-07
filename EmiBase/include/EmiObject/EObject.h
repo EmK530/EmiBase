@@ -24,6 +24,13 @@
     #define _EOBJECT_DEBUG_FIELDS
 #endif
 
+enum EObjectType
+{
+    EObjectType_ERect = 1,
+    EObjectType_EImage = 2,
+    EObjectType_EText = 3
+};
+
 typedef struct
 {
     Vector2 Position;

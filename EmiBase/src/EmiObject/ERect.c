@@ -29,7 +29,7 @@ void _erect_internal_render(ERect* rect, ETransform* t)
 #ifndef RELEASE
     void _erect_internal_serialize(BufferWriter* writer, ERect* self)
     {
-        BW_WriteU8(writer, 1); // Type identifier
+        BW_WriteU8(writer, EObjectType_ERect); // Type identifier
         Color32_serialize(writer, self->Color);
     }
 #endif
@@ -58,7 +58,7 @@ ERect* ERect_Create(EObject* parent)
 #endif
     EObject_SetName(rect, "ERect");
     
-    rect->innerType = 1;
+    rect->innerType = EObjectType_ERect;
     rect->Color.r = 255;
     rect->Color.g = 255;
     rect->Color.b = 255;

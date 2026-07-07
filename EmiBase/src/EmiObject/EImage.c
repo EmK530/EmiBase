@@ -51,7 +51,7 @@ void EImage_SetTexture(EImage* image, const char* texturePath)
 #ifndef RELEASE
     void _eimage_internal_serialize(BufferWriter* writer, EImage* self)
     {
-        BW_WriteU8(writer, 2); // Type identifier
+        BW_WriteU8(writer, EObjectType_EImage); // Type identifier
         uint8_t pathSize = strlen(self->_loadedTexturePath);
         BW_WriteU8(writer, pathSize);
         BW_WriteString(writer, self->_loadedTexturePath, pathSize);
@@ -68,6 +68,8 @@ extern void _eobject_internal_initialize(EObject* object);
         EImage* image = (EImage*)item;
         MemFree(image->_loadedTexturePath);
         image->_loadedTexturePath = NULL;
+        if(image->isTextureValid)
+            UnloadTexture(image->_loadedTexture);
     }
 #endif
 
@@ -97,7 +99,7 @@ EImage* EImage_Create(EObject* parent)
     EObject_SetName(image, "EImage");
     EImage_SetTexture(image, "image/EImageDefaultTexture.png");
     
-    image->innerType = 2;
+    image->innerType = EObjectType_EImage;
     image->BackgroundColor = Color32_new(255, 255, 255, 0);
     image->ImageColor = Color32_new(255, 255, 255, 255);
 

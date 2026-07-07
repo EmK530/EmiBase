@@ -229,7 +229,7 @@ static void Workspace_DrawProperties(EObject* object)
             nk_name_buf[0]  = '\0';
             nk_name_buf_len = 0;
         }
-        if(object->innerType == 2)
+        if(object->innerType == EObjectType_EImage)
         {
             EImage* image = (EImage*)object;
             nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
@@ -309,7 +309,7 @@ static void Workspace_DrawProperties(EObject* object)
 
     switch(object->innerType)
     {
-        case 1: // ERect
+        case EObjectType_ERect: // ERect
         {
             ERect* rect = (ERect*)object;
             nk_layout_row_dynamic(ctx, 8, 1);
@@ -333,7 +333,7 @@ static void Workspace_DrawProperties(EObject* object)
             break;
         }
 
-        case 2: // EImage
+        case EObjectType_EImage: // EImage
         {
             EImage* image = (EImage*)object;
             nk_layout_row_dynamic(ctx, 8, 1);
