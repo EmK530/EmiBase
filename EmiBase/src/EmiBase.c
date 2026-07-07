@@ -70,11 +70,15 @@ int EmiBase_Init()
 
 void EmiBase_ProcessInput()
 {
-    Scene *top = TopScene();
-    if (top && top->OnInput) {
-        int key;
-        while ((key = GetKeyPressed()) != 0)
-            top->OnInput(top, key);
+    int key;
+    while ((key = GetKeyPressed()) != 0)
+    {
+        for (int i = 0; i <= scene_stack.top; i++) {
+            Scene *s = scene_stack.scenes[i];
+            if (s && s->OnInput) {
+                s->OnInput(s, key);
+            }
+        }
     }
 }
 
