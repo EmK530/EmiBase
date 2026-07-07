@@ -35,6 +35,7 @@ void Recursive_EObject_Draw(EObject* object, ETransform* parent)
         Recursive_EObject_Draw(co, &current);
 }
 
+extern bool EmiObject_HasDrawnBefore;
 static EVector2i drawing_offset = {.X = 0, .Y = 0};
 void EmiObject_SetDrawOffset(EVector2i value)
 {
@@ -42,6 +43,8 @@ void EmiObject_SetDrawOffset(EVector2i value)
 }
 void EmiObject_Draw(int screenWidth, int screenHeight)
 {
+    if(nk_emiObject != 0)
+        return;
     Vector2 res = { (float)screenWidth, (float)screenHeight };
     ETransform root = {
         .Position = {res.x/2.0f + drawing_offset.X, res.y/2.0f + drawing_offset.Y},
@@ -51,6 +54,7 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
     LinkedObjectList_foreach(root_objects, object)
         Recursive_EObject_Draw(object, &root);
     drawing_offset = (EVector2i){.X = 0, .Y = 0};
+    EmiObject_HasDrawnBefore = true;
 }
 
 void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject* object)

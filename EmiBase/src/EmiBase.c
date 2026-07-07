@@ -128,6 +128,8 @@ void EmiBase_Attach()
 #endif
 }
 
+bool EmiObject_HasDrawnBefore = false;
+
 #ifndef RELEASE
     void (*overlayRemember)() = NULL;
     void doubleDraw() {
@@ -154,6 +156,7 @@ void EmiBase_Attach()
             _crashhandler_internal_sendstatus(0);
             EndDrawing();
     #endif
+        EmiObject_HasDrawnBefore = false;
     }
 #else
     void EmiBase_EndDrawing(void (*overlay)())
@@ -168,6 +171,7 @@ void EmiBase_Attach()
             overlay();
             EndDrawing();
     #endif
+        EmiObject_HasDrawnBefore = false;
     }
 #endif
 
@@ -231,7 +235,7 @@ void EmiBase_StepScenes()
 
     _crashhandler_internal_sendstatus(1);
 
-    if(nk_emiObject == 0)
+    if(!EmiObject_HasDrawnBefore)
         EmiObject_Draw(screenWidth, screenHeight);
 
     _crashhandler_internal_sendstatus(0);
