@@ -23,7 +23,6 @@ void SFunc (Init)(Scene *s) {
 ERect* source = NULL;
 
 void SFunc (Prepare)(Scene *s) {
-    EmiObject_Wipe();
     EmiObject_Deserialize("object/Demo.eobj");
 
     eprintf("[Scene." SCENE_STR "] Prepared\n");
@@ -31,6 +30,7 @@ void SFunc (Prepare)(Scene *s) {
 
 void SFunc (Cleanup)(Scene *s) {
     eprintf("[Scene." SCENE_STR "] Cleaning up...\n");
+    EmiObject_Wipe();
 }
 
 void SFunc (OnInput)(Scene *s, int e) {}

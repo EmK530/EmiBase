@@ -6,12 +6,12 @@ void SFunc (Init)(Scene *s) {
 }
 
 void SFunc (Prepare)(Scene *s) {
-    EmiObject_Wipe();
     eprintf("[Scene." SCENE_STR "] Prepared\n");
 }
 
 void SFunc (Cleanup)(Scene *s) {
     eprintf("[Scene." SCENE_STR "] Cleaning up...\n");
+    EmiObject_Wipe();
 }
 
 void SFunc (OnInput)(Scene *s, int e) {
