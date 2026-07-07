@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define EOBJECT_FULL_SCOPE
+#define EMIBASE_INTERNAL
 
 #include "EmiObject/EmiObject.h"
 #include "EmiObject/EObject.h"
@@ -16,22 +16,23 @@ void EObject_SetParent(void* object, EObject* parent)
     EObject* ctx = (EObject*)object;
     if(parent != NULL)
     {
-        if(ctx->_parent != NULL)
+        if(ctx->Parent != NULL)
         {
-            LinkedObjectList_remove(&ctx->_parent->Children, ctx);
+            LinkedObjectList_remove(&ctx->Parent->Children, ctx);
         } else {
             LinkedObjectList_remove(&root_objects, ctx);
         }
-        ctx->_parent = parent;
+        ctx->Parent = parent;
         LinkedObjectList_append(&parent->Children, ctx);
     } else {
-        if(ctx->_parent != NULL)
+        if(ctx->Parent != NULL)
         {
-            LinkedObjectList_remove(&ctx->_parent->Children, ctx);
-            ctx->_parent = NULL;
+            LinkedObjectList_remove(&ctx->Parent->Children, ctx);
+            ctx->Parent = NULL;
             LinkedObjectList_append(&root_objects, ctx);
         }
     }
+    ctx->_ParentInternalTracking = ctx->Parent;
 }
 
 extern void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject* object);
@@ -137,7 +138,8 @@ void _eobject_internal_initialize(EObject* object)
     object->Size = UDim2_new(0.0f, 100, 0.0f, 100);
     object->Anchor = Vector2_new(0.0f, 0.0f);
     object->Rotation = 0.0f;
-    object->_parent = NULL;
+    object->Parent = NULL;
+    object->_ParentInternalTracking = NULL;
     object->Children = LinkedObjectList_create();
     object->Visible = true;
     object->ZIndex = 0;

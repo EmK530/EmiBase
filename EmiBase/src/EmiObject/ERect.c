@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define EOBJECT_FULL_SCOPE
+#define EMIBASE_INTERNAL
 
 #include "EmiBase.h"
 

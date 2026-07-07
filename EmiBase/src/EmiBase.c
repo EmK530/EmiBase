@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#define EMIBASE_INTERNAL
+
 #include "rlgl.h"
 #include "EmiBase.h"
 #include "EmiBase/CrashHandler.h"

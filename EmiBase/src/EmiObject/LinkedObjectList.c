@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define EMIBASE_INTERNAL
+
 #include "EmiObject/LinkedObjectList.h"
 #include "EmiObject/EObject.h"
 

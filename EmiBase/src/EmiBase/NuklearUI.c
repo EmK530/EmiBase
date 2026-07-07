@@ -1,4 +1,4 @@
-#define EOBJECT_FULL_SCOPE
+#define EMIBASE_INTERNAL
 
 #include "EmiBase/NuklearUI.h"
 
@@ -289,7 +289,7 @@ static void Workspace_DrawProperties(EObject* object)
     }
     else
     {
-        nk_label(ctx, object->_parent ? (object->_parent->Name ? object->_parent->Name : "(unnamed)") : "(none)", NK_TEXT_LEFT);
+        nk_label(ctx, object->Parent ? (object->Parent->Name ? object->Parent->Name : "(unnamed)") : "(none)", NK_TEXT_LEFT);
         nk_layout_row_dynamic(ctx, 22, 2);
         if (nk_button_label(ctx, "Pick"))
             nk_parent_picking = true;

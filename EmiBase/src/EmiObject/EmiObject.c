@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#define EOBJECT_FULL_SCOPE
+#define EMIBASE_INTERNAL
 #include "EmiBase/NuklearUI.h"
 #include "EmiObject/EmiObject.h"
 #include "EmiObject/Types.h"
@@ -21,6 +21,12 @@ int EmiObject_Init()
 extern void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out);
 void Recursive_EObject_Draw(EObject* object, ETransform* parent)
 {
+    if(object->Parent != object->_ParentInternalTracking)
+    {
+        eprintf("[EmiObject] Destroying object '%s' with improperly set parent, did you mean to use EObject_SetParent?\n", object->Name);
+        EObject_Destroy(object);
+        return;
+    }
     ETransform current;
     if(!object->Visible)
         return;
@@ -53,10 +59,10 @@ void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject*
         _emiobject_internal_wipe_recursively(&child->Children, child);
     LinkedObjectList_clear(collection);
     if(object != NULL) {
-        if(object->_parent == NULL) {
+        if(object->Parent == NULL) {
             LinkedObjectList_remove(&root_objects, object);
         } else {
-            LinkedObjectList_remove(&object->_parent->Children, object);
+            LinkedObjectList_remove(&object->Parent->Children, object);
         }
         if(object == nk_selected_object)
             NuklearUI_ResetHighlight();

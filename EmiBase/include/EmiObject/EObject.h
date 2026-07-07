@@ -17,9 +17,14 @@
 #define SRAD2DEG(rad) ((rad) * (180.0 / M_PI))
 
 #ifndef RELEASE
-    #define _EOBJECT_DEBUG_FIELDS \
-        void (*_serialize_func)(BufferWriter* writer, EObject* self); \
-        bool _nk_expanded;
+    #ifdef EMIBASE_INTERNAL
+        #define _EOBJECT_DEBUG_FIELDS \
+            void (*_serialize_func)(BufferWriter* writer, EObject* self); \
+            bool _nk_expanded;
+    #else
+        #define _EOBJECT_DEBUG_FIELDS \
+            uint8_t _reserved2[sizeof(void*) + sizeof(bool)];
+    #endif
 #else
     #define _EOBJECT_DEBUG_FIELDS
 #endif
@@ -40,22 +45,39 @@ typedef struct
 
 typedef struct EObject EObject;
 
-#define EOBJECT_BASE_TYPES \
-    char* Name; \
-    EObject* _parent; \
-    EObject* _node_next; \
-    EObject* _node_prev; \
-    void (*_render)(EObject* ctx, ETransform* t); \
-    void (*_free_func)(EObject* ctx); \
-    _EOBJECT_DEBUG_FIELDS \
-    EUDim2 Position; \
-    EUDim2 Size; \
-    Vector2 Anchor; \
-    LinkedObjectList Children; \
-    float Rotation; \
-    bool Visible; \
-    uint8_t ZIndex; \
-    uint8_t innerType;
+#ifdef EMIBASE_INTERNAL
+    #define EOBJECT_BASE_TYPES \
+        char* Name; \
+        EObject* Parent; \
+        EObject* _ParentInternalTracking; \
+        EObject* _node_next; \
+        EObject* _node_prev; \
+        void (*_render)(EObject* ctx, ETransform* t); \
+        void (*_free_func)(EObject* ctx); \
+        _EOBJECT_DEBUG_FIELDS \
+        EUDim2 Position; \
+        EUDim2 Size; \
+        Vector2 Anchor; \
+        LinkedObjectList Children; \
+        float Rotation; \
+        bool Visible; \
+        uint8_t ZIndex; \
+        uint8_t innerType;
+#else
+    #define EOBJECT_BASE_TYPES \
+        char* Name; \
+        EObject* Parent; \
+        uint8_t _reserved1[sizeof(void*) * 5]; \
+        _EOBJECT_DEBUG_FIELDS \
+        EUDim2 Position; \
+        EUDim2 Size; \
+        Vector2 Anchor; \
+        LinkedObjectList Children; \
+        float Rotation; \
+        bool Visible; \
+        uint8_t ZIndex; \
+        uint8_t innerType;
+#endif
 
 struct EObject
 {

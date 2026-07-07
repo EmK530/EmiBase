@@ -9,7 +9,7 @@
 
 typedef struct EImage EImage;
 
-#ifdef EOBJECT_FULL_SCOPE
+#ifdef EMIBASE_INTERNAL
     struct EImage
     {
         EOBJECT_BASE_TYPES
@@ -27,9 +27,9 @@ typedef struct EImage EImage;
     {
         EOBJECT_BASE_TYPES
     #ifndef RELEASE
-        uint8_t _reserved[sizeof(Texture2D) + sizeof(bool) + sizeof(char*)];
+        uint8_t _reservedi[sizeof(Texture2D) + sizeof(bool) + sizeof(char*)];
     #else
-        uint8_t _reserved[sizeof(Texture2D) + sizeof(bool)];
+        uint8_t _reservedi[sizeof(Texture2D) + sizeof(bool)];
     #endif
 
         Color BackgroundColor; // Background color
