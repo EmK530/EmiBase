@@ -59,10 +59,10 @@ void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject*
         _emiobject_internal_wipe_recursively(&child->Children, child);
     LinkedObjectList_clear(collection);
     if(object != NULL) {
-        if(object->Parent == NULL) {
+        if(object->_ParentInternalTracking == NULL) {
             LinkedObjectList_remove(&root_objects, object);
         } else {
-            LinkedObjectList_remove(&object->Parent->Children, object);
+            LinkedObjectList_remove(&object->_ParentInternalTracking->Children, object);
         }
         if(object == nk_selected_object)
             NuklearUI_ResetHighlight();

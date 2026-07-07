@@ -16,18 +16,18 @@ void EObject_SetParent(void* object, EObject* parent)
     EObject* ctx = (EObject*)object;
     if(parent != NULL)
     {
-        if(ctx->Parent != NULL)
+        if(ctx->_ParentInternalTracking != NULL)
         {
-            LinkedObjectList_remove(&ctx->Parent->Children, ctx);
+            LinkedObjectList_remove(&ctx->_ParentInternalTracking->Children, ctx);
         } else {
             LinkedObjectList_remove(&root_objects, ctx);
         }
         ctx->Parent = parent;
         LinkedObjectList_append(&parent->Children, ctx);
     } else {
-        if(ctx->Parent != NULL)
+        if(ctx->_ParentInternalTracking != NULL)
         {
-            LinkedObjectList_remove(&ctx->Parent->Children, ctx);
+            LinkedObjectList_remove(&ctx->_ParentInternalTracking->Children, ctx);
             ctx->Parent = NULL;
             LinkedObjectList_append(&root_objects, ctx);
         }
