@@ -46,6 +46,9 @@ typedef struct
 typedef struct EObject EObject;
 
 #ifdef EMIBASE_INTERNAL
+    #ifndef RELEASE
+        void _eobject_internal_serialize(BufferWriter* writer, EObject* self);
+    #endif
     #define EOBJECT_BASE_TYPES \
         char* Name; \
         EObject* Parent; \
@@ -62,7 +65,7 @@ typedef struct EObject EObject;
         float Rotation; \
         bool Visible; \
         uint8_t ZIndex; \
-        uint8_t innerType;
+        enum EObjectType innerType;
 #else
     #define EOBJECT_BASE_TYPES \
         char* Name; \
@@ -76,7 +79,7 @@ typedef struct EObject EObject;
         float Rotation; \
         bool Visible; \
         uint8_t ZIndex; \
-        uint8_t innerType;
+        enum EObjectType innerType;
 #endif
 
 struct EObject
@@ -86,4 +89,4 @@ struct EObject
 
 void EObject_SetParent(void* ctx, EObject* parent);
 void EObject_Destroy(void* ctx);
-void EObject_SetName(void* object, char* name);
+void EObject_SetName(void* object, const char* name);

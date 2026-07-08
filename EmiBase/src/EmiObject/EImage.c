@@ -7,15 +7,14 @@
 
 void _eimage_internal_render(EImage* image, ETransform* t)
 {
-    if(image->BackgroundColor.a > 0)
+    if(image->BackgroundColor.a > 1)
     {
-        Color color = { image->BackgroundColor.r, image->BackgroundColor.g, image->BackgroundColor.b, image->BackgroundColor.a };
         if (t->Rotation == 0.0f) {
-            DrawRectangle((int)(t->Position.x - t->Size.x * 0.5f),(int)(t->Position.y - t->Size.y * 0.5f),(int)t->Size.x,(int)t->Size.y,color);
+            DrawRectangle((int)(t->Position.x - t->Size.x * 0.5f),(int)(t->Position.y - t->Size.y * 0.5f),(int)t->Size.x,(int)t->Size.y,image->BackgroundColor);
         } else {
             Rectangle r = { t->Position.x, t->Position.y, t->Size.x, t->Size.y };
             Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
-            DrawRectanglePro(r, origin, t->Rotation, color);
+            DrawRectanglePro(r, origin, t->Rotation, image->BackgroundColor);
         }
     }
     if(image->isTextureValid)
@@ -88,6 +87,7 @@ EImage* EImage_Create(EObject* parent)
         return NULL;
     }
 
+    image->innerType = EObjectType_EImage;
     _eobject_internal_initialize((EObject*)image);
 
     image->_render = (void(*)(EObject*, ETransform*))_eimage_internal_render; // swagging on that unsafe cast
@@ -101,7 +101,6 @@ EImage* EImage_Create(EObject* parent)
     EObject_SetName(image, "EImage");
     EImage_SetTexture(image, "image/EImageDefaultTexture.png");
     
-    image->innerType = EObjectType_EImage;
     image->BackgroundColor = Color32_new(255, 255, 255, 0);
     image->ImageColor = Color32_new(255, 255, 255, 255);
 

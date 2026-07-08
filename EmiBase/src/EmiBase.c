@@ -101,6 +101,20 @@ void EmiBase_BeginDrawing()
 #endif
 }
 
+static void _emibase_restore_framebuffer(unsigned int fbo, int width, int height)
+{
+    rlDrawRenderBatchActive();
+    rlEnableFramebuffer(fbo);
+    rlViewport(0, 0, width, height);
+    rlSetFramebufferWidth(width);
+    rlSetFramebufferHeight(height);
+    rlMatrixMode(RL_PROJECTION);
+    rlLoadIdentity();
+    rlOrtho(0, width, height, 0, 0.0f, 1.0f);
+    rlMatrixMode(RL_MODELVIEW);
+    rlLoadIdentity();
+}
+
 void EmiBase_Detach()
 {
     if(detached)
@@ -112,6 +126,55 @@ void EmiBase_Detach()
     rlDrawRenderBatchActive();
 }
 
+void EmiBase_DetachedTextureMode(RenderTexture2D tex)
+{
+    if(!detached)
+    {
+        eprintf("[EmiBase] Attempt to enable detached texture mode when not detached!");
+        return;
+    }
+    _emibase_restore_framebuffer(tex.id, tex.texture.width, tex.texture.height);
+}
+
+RenderTexture2D EmiBase_LoadRenderTexture(int width, int height)
+{
+    RenderTexture2D tex = { 0 };
+
+    tex.id = rlLoadFramebuffer();
+
+    if (tex.id > 0)
+    {
+        rlEnableFramebuffer(tex.id);
+
+        tex.texture.id = rlLoadTexture(NULL, width, height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
+        tex.texture.width = width;
+        tex.texture.height = height;
+        tex.texture.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+        tex.texture.mipmaps = 1;
+
+        tex.depth.id = rlLoadTextureDepth(width, height, true);
+        tex.depth.width = width;
+        tex.depth.height = height;
+        tex.depth.format = 19;
+        tex.depth.mipmaps = 1;
+
+        rlFramebufferAttach(tex.id, tex.texture.id, RL_ATTACHMENT_COLOR_CHANNEL0, RL_ATTACHMENT_TEXTURE2D, 0);
+        rlFramebufferAttach(tex.id, tex.depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_RENDERBUFFER, 0);
+
+        if (rlFramebufferComplete(tex.id))
+            TRACELOG(LOG_INFO, "FBO: [ID %i] Framebuffer object created successfully", tex.id);
+
+#if SUPPORTS_POSTPROCESS == 1
+        rlEnableFramebuffer(target.id);
+#else
+        rlEnableFramebuffer(0);
+#endif
+    }
+    else TRACELOG(LOG_WARNING, "FBO: Framebuffer object can not be created");
+
+    return tex;
+}
+
 void EmiBase_Attach()
 {
     if(!detached)
@@ -121,10 +184,9 @@ void EmiBase_Attach()
     }
     detached = false;
 #if SUPPORTS_POSTPROCESS == 1
-    BeginTextureMode(target);
+    _emibase_restore_framebuffer(target.id, target.texture.width, target.texture.height);
 #else
-    rlLoadIdentity();
-    rlMultMatrixf(MatrixToFloat(CORE.Window.screenScale)); 
+    _emibase_restore_framebuffer(0, GetScreenWidth(), GetScreenHeight());
 #endif
 }
 

@@ -3,6 +3,7 @@
 #include "EmiObject/EObject.h"
 #include "EmiObject/ERect.h"
 #include "EmiObject/EImage.h"
+#include "EmiObject/EText.h"
 #include "EmiObject/LinkedObjectList.h"
 
 extern LinkedObjectList root_objects;
@@ -18,6 +19,9 @@ void EmiObject_SetDrawOffset(EVector2i value);
     /*
         For development use only, serializes all currently existing EmiObject instances into a binary file.
         Can be used to create a static set of objects you load with a one-liner at runtime, to reduce code size.
+        If a target is provided, only that object and its children will be serialized, instead of the entire workspace.
     */
-    void EmiObject_Serialize();
+    void EmiObject_Serialize(EObject* target);
+#else
+    static inline void EmiObject_Serialize(EObject* target) {}
 #endif

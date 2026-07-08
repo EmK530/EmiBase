@@ -44,7 +44,7 @@ void EObject_Destroy(void* object)
     _emiobject_internal_wipe_recursively(&ctx->Children, ctx);
 }
 
-void EObject_SetName(void* object, char* name)
+void EObject_SetName(void* object, const char* name)
 {
     if(object == NULL)
         return;
@@ -135,7 +135,11 @@ void _eobject_internal_initialize(EObject* object)
 {
     object->Name = NULL;
     object->Position = UDim2_new(0.0f, 100, 0.0f, 100);
-    object->Size = UDim2_new(0.0f, 100, 0.0f, 100);
+    if(object->innerType == EObjectType_EText) {
+        object->Size = UDim2_new(0.0f, 200, 0.0f, 50);
+    } else {
+        object->Size = UDim2_new(0.0f, 100, 0.0f, 100);
+    }
     object->Anchor = Vector2_new(0.0f, 0.0f);
     object->Rotation = 0.0f;
     object->Parent = NULL;

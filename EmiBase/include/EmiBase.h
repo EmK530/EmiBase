@@ -88,13 +88,9 @@
     void EmiBase_Cleanup();
 #endif
 void EmiBase_Detach(); // EmiBase-safe version of EndDrawing to transfer full rendering control to a scene. Remember to call Attach after you are done.
+void EmiBase_DetachedTextureMode(RenderTexture2D tex); // EmiBase-safe version of BeginTextureMode to draw in a RenderTexture without flushing the screen.
+RenderTexture2D EmiBase_LoadRenderTexture(int width, int height); // EmiBase-safe version of LoadRenderTexture that ensures Detach does not break.
 void EmiBase_Attach(); // Return rendering control back to EmiBase, needs to be called before the end of a scene if you ran Detach.
-
-#ifndef RELEASE
-    void EmiObject_Serialize();
-#else
-    static inline void EmiObject_Serialize() {}
-#endif
 
 #define EMIBASE_VER "Indev"
 

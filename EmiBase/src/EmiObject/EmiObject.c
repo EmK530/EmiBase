@@ -80,6 +80,7 @@ void EmiObject_Wipe()
 {
     _emiobject_internal_wipe_recursively(&root_objects, NULL);
     root_objects = LinkedObjectList_create();
+    NuklearUI_ResetHighlight();
 }
 
 void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
@@ -172,20 +173,26 @@ void EmiObject_Deserialize(const char* filePath)
     {
         // Serialize ERect properties before EObject
         target->_serialize_func(writer, target);
-        target->_serialize_func(writer, target);
+        _eobject_internal_serialize(writer, (EObject*)target);
         BW_WriteU32(writer, target->Children.size);
         LinkedObjectList_foreach(target->Children, child)
             _internal_serialize_recursively(writer, target, child);
     }
 
-    void EmiObject_Serialize()
+    void EmiObject_Serialize(EObject* target)
     {
         BufferWriter* writer = BW_CreateWithCapacity(8192);
         BW_WriteString(writer, "EOBJ", 4);
         BW_WriteU8(writer, 1); // Version
-        BW_WriteU32(writer, root_objects.size);
-        LinkedObjectList_foreach(root_objects, object)
-            _internal_serialize_recursively(writer, NULL, object);
+        if(target == NULL)
+        {
+            BW_WriteU32(writer, root_objects.size);
+            LinkedObjectList_foreach(root_objects, object)
+                _internal_serialize_recursively(writer, NULL, object);
+        } else {
+            BW_WriteU32(writer, 1);
+            _internal_serialize_recursively(writer, NULL, target);
+        }
         BW_SaveToFile(writer, "Workspace.eobj");
     }
 #endif

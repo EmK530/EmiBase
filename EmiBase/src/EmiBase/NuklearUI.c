@@ -63,12 +63,22 @@ int NuklearUI_Init()
 }
 
 static EObject* nk_name_buf_owner   = NULL;
+
 static char     nk_name_buf[128]    = {0};
 static char     nk_texture_buf[128] = {0};
+static char     nk_font_buf[128]    = {0};
+static char     nk_text_buf[128]    = {0};
+
 static int      nk_name_buf_len     = 0;
 static int      nk_texture_buf_len  = 0;
+static int      nk_font_buf_len     = 0;
+static int      nk_text_buf_len     = 0;
+
 static bool     nk_name_editing     = false;
 static bool     nk_texture_editing  = false;
+static bool     nk_text_editing     = false;
+static bool     nk_font_editing     = false;
+
 static bool     nk_parent_picking   = false;
 
 void NuklearUI_ResetHighlight()
@@ -81,6 +91,8 @@ void NuklearUI_ResetHighlight()
     nk_texture_buf_len = 0;
     nk_name_editing    = false;
     nk_texture_editing = false;
+    nk_text_editing    = false;
+    nk_font_editing    = false;
 }
 
 void NuklearUI_OnObjectDestroyed(EObject* object)
@@ -159,14 +171,22 @@ static void Workspace_DrawHierarchyNode(EObject* object, int depth)
 
 static void Workspace_DrawRenamePopup(EObject* object)
 {
-    if ((!nk_name_editing && !nk_texture_editing) || object == NULL)
+    if (object == NULL)
         return;
 
     struct nk_rect content = nk_window_get_content_region(ctx);
     struct nk_command_buffer* canvas = nk_window_get_canvas(ctx);
     nk_fill_rect(canvas, content, 0.0f, nk_rgba(0, 0, 0, 120));
 
-    if (nk_popup_begin(ctx, NK_POPUP_STATIC, nk_texture_editing ? "Change Texture" : "Rename",
+    char* Title = "Rename";
+    if(nk_texture_editing) {
+        Title = "Change Texture";
+    } else if(nk_font_editing) {
+        Title = "Change Font";
+    } else if(nk_text_editing) {
+        Title = "Change Text";
+    }
+    if (nk_popup_begin(ctx, NK_POPUP_STATIC, Title,
         NK_WINDOW_TITLE | NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR,
         nk_rect(10, 10, 200, 105)))
     {
@@ -174,6 +194,10 @@ static void Workspace_DrawRenamePopup(EObject* object)
         nk_flags event;
         if(nk_texture_editing) {
             event = nk_edit_string(ctx, NK_EDIT_FIELD | NK_EDIT_SIG_ENTER, nk_texture_buf, &nk_texture_buf_len, 128, nk_filter_default);
+        } else if(nk_font_editing) {
+            event = nk_edit_string(ctx, NK_EDIT_FIELD | NK_EDIT_SIG_ENTER, nk_font_buf, &nk_font_buf_len, 128, nk_filter_default);
+        } else if(nk_text_editing) {
+            event = nk_edit_string(ctx, NK_EDIT_FIELD | NK_EDIT_SIG_ENTER, nk_text_buf, &nk_text_buf_len, 128, nk_filter_default);
         } else {
             event = nk_edit_string(ctx, NK_EDIT_FIELD | NK_EDIT_SIG_ENTER, nk_name_buf, &nk_name_buf_len, 128, nk_filter_default);
         }
@@ -181,24 +205,35 @@ static void Workspace_DrawRenamePopup(EObject* object)
         nk_layout_row_dynamic(ctx, 22, 2);
         if (nk_button_label(ctx, "OK") || (event & NK_EDIT_COMMITED))
         {
-            if(nk_texture_editing)
-            {
+            if(nk_texture_editing) {
                 nk_texture_buf[nk_texture_buf_len] = '\0';
-                // i might regret this in the future
                 EImage* image = (EImage*)object;
                 EImage_SetTexture(image, nk_texture_buf);
+            } else if(nk_font_editing) {
+                nk_font_buf[nk_font_buf_len] = '\0';
+                EText* text = (EText*)object;
+                EText_SetFont(text, nk_font_buf);
+            } else if(nk_text_editing) {
+                nk_text_buf[nk_text_buf_len] = '\0';
+                EText* text = (EText*)object;
+                EText_SetText(text, nk_text_buf);
             } else {
                 nk_name_buf[nk_name_buf_len] = '\0';
                 EObject_SetName(object, nk_name_buf);
             }
+
             nk_name_editing = false;
             nk_texture_editing = false;
+            nk_font_editing = false;
+            nk_text_editing = false;
             nk_popup_close(ctx);
         }
         if (nk_button_label(ctx, "Cancel"))
         {
             nk_name_editing = false;
             nk_texture_editing = false;
+            nk_font_editing = false;
+            nk_text_editing = false;
             nk_popup_close(ctx);
         }
 
@@ -208,6 +243,8 @@ static void Workspace_DrawRenamePopup(EObject* object)
     {
         nk_name_editing = false;
         nk_texture_editing = false;
+        nk_font_editing = false;
+        nk_text_editing = false;
     }
 }
 
@@ -229,16 +266,31 @@ static void Workspace_DrawProperties(EObject* object)
             nk_name_buf[0]  = '\0';
             nk_name_buf_len = 0;
         }
-        if(object->innerType == EObjectType_EImage)
+        switch(object->innerType)
         {
-            EImage* image = (EImage*)object;
-            nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
-            if (nk_texture_buf_len > 127) nk_texture_buf_len = 127;
-            memcpy(nk_texture_buf, image->_loadedTexturePath, nk_texture_buf_len);
-            nk_texture_buf[nk_texture_buf_len] = '\0';
-        } else {
-            nk_texture_buf[0]  = '\0';
-            nk_texture_buf_len = 0;
+            case EObjectType_EImage:
+            {
+                EImage* image = (EImage*)object;
+                nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
+                if (nk_texture_buf_len > 127) nk_texture_buf_len = 127;
+                memcpy(nk_texture_buf, image->_loadedTexturePath, nk_texture_buf_len);
+                nk_texture_buf[nk_texture_buf_len] = '\0';
+                break;
+            }
+            case EObjectType_EText:
+            {
+                EText* text = (EText*)object;
+                nk_text_buf_len = text->_TextTrueLen;
+                if (nk_text_buf_len > 127) nk_text_buf_len = 127;
+                memcpy(nk_text_buf, text->Text, nk_text_buf_len);
+                nk_text_buf[nk_text_buf_len] = '\0';
+
+                nk_font_buf_len = (int)strlen(text->_FontPath);
+                if (nk_font_buf_len > 127) nk_font_buf_len = 127;
+                memcpy(nk_font_buf, text->_FontPath, nk_font_buf_len);
+                nk_font_buf[nk_font_buf_len] = '\0';
+                break;
+            }
         }
     }
 
@@ -377,6 +429,85 @@ static void Workspace_DrawProperties(EObject* object)
             image->BackgroundColor.b = (uint8_t)(nk_col2.b * 255.0f);
             image->BackgroundColor.a = (uint8_t)(nk_col2.a * 255.0f);
         }
+
+        case EObjectType_EText:
+        {
+            EText* text = (EText*)object;
+            nk_layout_row_dynamic(ctx, 8, 1);
+            nk_label(ctx, "", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(ctx, 18, 1);
+            nk_label(ctx, "-- EText Properties --", NK_TEXT_CENTERED);
+
+            // Render Type
+            nk_layout_row_dynamic(ctx, 18, 1);
+            nk_label(ctx, "Render Type", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(ctx, 22, 3);
+            if (nk_option_label(ctx, "Fixed",   text->_RenderType == ETextRenderType_Fixed))
+                EText_SetRenderType(text, ETextRenderType_Fixed);
+            if (nk_option_label(ctx, "Fit",     text->_RenderType == ETextRenderType_FixedFit))
+                EText_SetRenderType(text, ETextRenderType_FixedFit);
+            if (nk_option_label(ctx, "Stretch", text->_RenderType == ETextRenderType_FixedStretch))
+                EText_SetRenderType(text, ETextRenderType_FixedStretch);
+
+            // Text
+            nk_layout_row_dynamic(ctx, 18, 1);
+            nk_label(ctx, "Text", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(ctx, 22, 2);
+            nk_label(ctx, text->Text ? text->Text : "(none)", NK_TEXT_LEFT);
+            if (nk_button_label(ctx, "Edit"))
+                nk_text_editing = true;
+
+            // Font
+            nk_layout_row_dynamic(ctx, 18, 1);
+            nk_label(ctx, "Font", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(ctx, 22, 2);
+            nk_label(ctx, text->_FontPath ? text->_FontPath : "(none)", NK_TEXT_LEFT);
+            if (nk_button_label(ctx, "Change"))
+                nk_font_editing = true;
+
+            // Font Size
+            nk_layout_row_dynamic(ctx, 18, 1);
+            nk_label(ctx, "Font Size", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(ctx, 22, 1);
+            float fontSize = text->_FontSize;
+            nk_property_float(ctx, "#", 3.0f, &fontSize, 512.0f, 1.0f, 0.5f);
+            if (fontSize != text->_FontSize)
+                EText_SetFontSize(text, fontSize);
+
+            // Text Color
+            nk_layout_row_dynamic(ctx, 18, 1);
+            nk_label(ctx, "Text Color", NK_TEXT_LEFT);
+            struct nk_colorf nk_col = {
+                text->TextColor.r / 255.0f,
+                text->TextColor.g / 255.0f,
+                text->TextColor.b / 255.0f,
+                text->TextColor.a / 255.0f
+            };
+            nk_layout_row_dynamic(ctx, 150, 1);
+            nk_col = nk_color_picker(ctx, nk_col, NK_RGBA);
+            text->TextColor.r = (uint8_t)(nk_col.r * 255.0f);
+            text->TextColor.g = (uint8_t)(nk_col.g * 255.0f);
+            text->TextColor.b = (uint8_t)(nk_col.b * 255.0f);
+            text->TextColor.a = (uint8_t)(nk_col.a * 255.0f);
+
+            // Background Color
+            nk_layout_row_dynamic(ctx, 18, 1);
+            nk_label(ctx, "Background Color", NK_TEXT_LEFT);
+            struct nk_colorf nk_col2 = {
+                text->BackgroundColor.r / 255.0f,
+                text->BackgroundColor.g / 255.0f,
+                text->BackgroundColor.b / 255.0f,
+                text->BackgroundColor.a / 255.0f
+            };
+            nk_layout_row_dynamic(ctx, 150, 1);
+            nk_col2 = nk_color_picker(ctx, nk_col2, NK_RGBA);
+            text->BackgroundColor.r = (uint8_t)(nk_col2.r * 255.0f);
+            text->BackgroundColor.g = (uint8_t)(nk_col2.g * 255.0f);
+            text->BackgroundColor.b = (uint8_t)(nk_col2.b * 255.0f);
+            text->BackgroundColor.a = (uint8_t)(nk_col2.a * 255.0f);
+        }
+        nk_layout_row_dynamic(ctx, 8, 1);
+        nk_label(ctx, "", NK_TEXT_LEFT);
     }
 }
 
@@ -415,25 +546,42 @@ static void Workspace_DrawWorkspace()
                 Workspace_DrawHierarchyNode(object, 0);
 
             struct nk_rect hier_bounds = nk_window_get_bounds(ctx);
-            if (nk_contextual_begin(ctx, 0, nk_vec2(150, 100), hier_bounds))
+            if (nk_contextual_begin(ctx, 0, nk_vec2(120, 150), hier_bounds))
             {
                 nk_layout_row_dynamic(ctx, 18, 1);
-                if (nk_contextual_item_label(ctx, "Create new ERect", NK_TEXT_LEFT))
+                if (nk_contextual_item_label(ctx, "Add new ERect", NK_TEXT_LEFT))
                 {
                     ERect* rect = ERect_Create(nk_selected_object);
                     if (nk_selected_object != NULL)
                         nk_selected_object->_nk_expanded = true;
                 }
-                if (nk_contextual_item_label(ctx, "Create new EImage", NK_TEXT_LEFT))
+                if (nk_contextual_item_label(ctx, "Add new EImage", NK_TEXT_LEFT))
                 {
                     EImage* image = EImage_Create(nk_selected_object);
                     if (nk_selected_object != NULL)
                         nk_selected_object->_nk_expanded = true;
                 }
+                if (nk_contextual_item_label(ctx, "Add new EText", NK_TEXT_LEFT))
+                {
+                    EText* image = EText_Create(nk_selected_object);
+                    if (nk_selected_object != NULL)
+                        nk_selected_object->_nk_expanded = true;
+                }
+                if(nk_selected_object != NULL)
+                {
+                    nk_layout_row_dynamic(ctx, 4, 1);
+                    nk_label(ctx, "", NK_TEXT_LEFT);
+                    nk_layout_row_dynamic(ctx, 18, 1);
+                }
                 if (nk_selected_object != NULL &&
                     nk_contextual_item_label(ctx, "Destroy", NK_TEXT_LEFT))
                 {
                     EObject_Destroy(nk_selected_object);
+                }
+                if (nk_selected_object != NULL &&
+                    nk_contextual_item_label(ctx, "Export selection", NK_TEXT_LEFT))
+                {
+                    EmiObject_Serialize(nk_selected_object);
                 }
                 nk_layout_row_dynamic(ctx, 4, 1);
                 nk_label(ctx, "", NK_TEXT_LEFT);
@@ -477,7 +625,7 @@ static void Workspace_DrawWorkspace()
     bounds.y = NK_CLAMP(20, bounds.y, sh - bounds.h);
     nk_window_set_bounds(ctx, "Workspace", bounds);
 
-    if (nk_name_editing || nk_texture_editing)
+    if (nk_name_editing || nk_texture_editing || nk_font_editing || nk_text_editing)
         Workspace_DrawRenamePopup(nk_name_buf_owner);
 
     nk_end(ctx);
@@ -514,7 +662,7 @@ void NuklearUI_Draw()
         {
             nk_layout_row_dynamic(ctx, 18, 1);
             if (nk_menu_item_label(ctx, "Save Workspace To File", NK_TEXT_LEFT))
-                EmiObject_Serialize();
+                EmiObject_Serialize(NULL);
             nk_layout_row_dynamic(ctx, 4, 1);
             nk_label(ctx, "", NK_TEXT_LEFT);
             nk_menu_end(ctx);

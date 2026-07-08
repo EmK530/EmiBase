@@ -49,6 +49,7 @@ ERect* ERect_Create(EObject* parent)
         return NULL;
     }
 
+    rect->innerType = EObjectType_ERect;
     _eobject_internal_initialize((EObject*)rect);
 
     rect->_free_func = NULL;
@@ -58,7 +59,6 @@ ERect* ERect_Create(EObject* parent)
 #endif
     EObject_SetName(rect, "ERect");
     
-    rect->innerType = EObjectType_ERect;
     rect->Color.r = 255;
     rect->Color.g = 255;
     rect->Color.b = 255;
