@@ -123,7 +123,7 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
                 MemFree(str);
                 uint8_t fontPathLen = BR_ReadU8(reader);
                 char* fontPath = BR_ReadString(reader, fontPathLen);
-                text->_FontSize = BR_ReadFloat(reader);
+                EText_SetFontSize(text, BR_ReadFloat(reader));
                 EText_SetFont(text, fontPath);
                 MemFree(fontPath);
                 EText_SetRenderType(text, BR_ReadU8(reader));
