@@ -112,21 +112,6 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
                 obj = (EObject*)image;
                 break;
             }
-            /*
-                void _etext_internal_serialize(BufferWriter* writer, EText* self)
-                {
-                    BW_WriteU8(writer, EObjectType_EText); // Type identifier
-                    Color32_serialize(writer, self->BackgroundColor);
-                    Color32_serialize(writer, self->TextColor);
-                    BW_WriteU32(writer, self->_TextTrueLen);
-                    BW_WriteString(writer, self->Text, self->_TextTrueLen);
-                    uint8_t fontPathLen = strlen(self->_FontPath);
-                    BW_WriteU8(writer, fontPathLen);
-                    BW_WriteString(writer, self->_FontPath, fontPathLen);
-                    BW_WriteFloat(writer, self->_FontSize);
-                    BW_WriteU8(writer, self->_RenderType);
-                }
-            */
             case EObjectType_EText:
             {
                 EText* text = EText_Create(parent);
