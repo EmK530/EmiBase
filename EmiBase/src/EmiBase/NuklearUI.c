@@ -684,12 +684,16 @@ void NuklearUI_Draw()
     {
         nk_layout_row_begin(ctx, NK_STATIC, 20, 5);
 
-        nk_layout_row_push(ctx, 28);
-        if (nk_menu_begin_label(ctx, "File", NK_TEXT_LEFT, nk_vec2(140, 200)))
+        nk_layout_row_push(ctx, 42);
+        if (nk_menu_begin_label(ctx, "Object", NK_TEXT_LEFT, nk_vec2(145, 500)))
         {
             nk_layout_row_dynamic(ctx, 18, 1);
-            if (nk_menu_item_label(ctx, "Save Workspace To File", NK_TEXT_LEFT))
+            if (nk_menu_item_label(ctx, "Export Workspace to file", NK_TEXT_LEFT))
                 EmiObject_Serialize(NULL);
+            nk_label(ctx, "!- DANGER ZONE -!", NK_TEXT_LEFT);
+            nk_layout_row_dynamic(ctx, 18, 1);
+            if (nk_menu_item_label(ctx, "Clear all objects", NK_TEXT_LEFT))
+                EmiObject_Wipe();
             nk_layout_row_dynamic(ctx, 4, 1);
             nk_label(ctx, "", NK_TEXT_LEFT);
             nk_menu_end(ctx);
@@ -741,7 +745,7 @@ void NuklearUI_Draw()
             nk_menu_end(ctx);
         }
 
-        nk_layout_row_push(ctx, w - 171);
+        nk_layout_row_push(ctx, w - 185);
         nk_label(ctx, "EmiBase " EMIBASE_VER " (" GIT_HASH GIT_DIRTY ") | " PROJECT_NAME " " PROJECT_VER, NK_TEXT_RIGHT);
         nk_layout_row_end(ctx);
     }
