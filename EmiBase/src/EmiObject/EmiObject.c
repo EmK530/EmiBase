@@ -56,10 +56,16 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
     drawing_offset = (EVector2i){.X = 0, .Y = 0};
 }
 
-void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject* object)
+void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject* object, bool topmost)
 {
-    LinkedObjectList_foreach(*collection, child)
-        _emiobject_internal_wipe_recursively(&child->Children, child);
+    EObject* cur = collection->head;
+    EObject* next = NULL;
+    while(cur)
+    {
+        next = cur->_node_next;
+        _emiobject_internal_wipe_recursively(&cur->Children, cur, false);
+        cur = next;
+    }
     LinkedObjectList_clear(collection);
     if(object != NULL) {
         if(object->_ParentInternalTracking == NULL) {
@@ -78,7 +84,7 @@ void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject*
 
 void EmiObject_Wipe()
 {
-    _emiobject_internal_wipe_recursively(&root_objects, NULL);
+    _emiobject_internal_wipe_recursively(&root_objects, NULL, true);
     root_objects = LinkedObjectList_create();
     NuklearUI_ResetHighlight();
 }

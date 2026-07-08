@@ -246,7 +246,6 @@ void _emibase_internal_replacescene(Scene* target)
             scene->Cleanup(scene);
         scene->active = false;
     }
-    EmiObject_Wipe();
     PushScene(target);
 }
 
