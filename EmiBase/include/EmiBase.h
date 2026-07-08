@@ -36,6 +36,16 @@
     #define STARTUP_SCENE "Demo"
 #endif
 
+// Default font that EText objects are created with
+#ifndef DEFAULT_FONT
+    #define DEFAULT_FONT "EmiBase/ArialCE.ttf"
+#endif
+
+// Default image that EImage objects are created with
+#ifndef DEFAULT_IMAGE
+    #define DEFAULT_IMAGE "EmiBase/EImage.png"
+#endif
+
 /*
     Compiles EmiBase with a Post Processing wrapper. Breaks software rendering.
     If disabled, all PostProcess functions will be replaced with dummy variants.

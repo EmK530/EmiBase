@@ -7,7 +7,7 @@
 
 void _etext_internal_render(EText* text, ETransform* t)
 {
-    if(text->BackgroundColor.a > 1)
+    if(text->BackgroundColor.a > 4)
     {
         if (t->Rotation == 0.0f) {
             DrawRectangle((int)(t->Position.x - t->Size.x * 0.5f),(int)(t->Position.y - t->Size.y * 0.5f),(int)t->Size.x,(int)t->Size.y,text->BackgroundColor);
@@ -272,7 +272,7 @@ EText* EText_Create(EObject* parent)
     text->_FontSize = 24.0f;
     text->_RenderType = ETextRenderType_Fixed;
     EText_SetTextN(text, "EText", 5);
-    EText_SetFont(text, "font/ArialCE.ttf");
+    EText_SetFont(text, DEFAULT_FONT);
 
     if(parent != NULL)
         EObject_SetParent(text, parent);

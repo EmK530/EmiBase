@@ -25,11 +25,21 @@ bool nk_overlay    = 0;
 
 bool _nk_window_workspace = 0;
 
+static struct nk_image nk_icon_erect;
+static struct nk_image nk_icon_eimage;
+static struct nk_image nk_icon_etext;
+static struct nk_image nk_icon_eobject;
+
 int NuklearUI_Init()
 {
     ctx = InitNuklear(10);
     if (!IsNuklearValid(ctx))
         return 0;
+
+    nk_icon_erect   = TextureToNuklearImage(ContentManager_LoadTexture("EmiBase/icon/ERect.png"));
+    nk_icon_eimage  = TextureToNuklearImage(ContentManager_LoadTexture("EmiBase/icon/EImage.png"));
+    nk_icon_etext   = TextureToNuklearImage(ContentManager_LoadTexture("EmiBase/icon/EText.png"));
+    nk_icon_eobject = TextureToNuklearImage(ContentManager_LoadTexture("EmiBase/icon/EObject.png"));
 
     ctx->style.window.padding  = nk_vec2(0, 0);
     ctx->style.window.spacing  = nk_vec2(0, 0);
@@ -106,7 +116,7 @@ static void Workspace_DrawHierarchyNode(EObject* object, int depth)
     bool has_children = object->Children.size > 0;
     bool is_selected  = (nk_selected_object == object);
 
-    nk_layout_row_begin(ctx, NK_STATIC, 18, 3);
+    nk_layout_row_begin(ctx, NK_STATIC, 18, 5);
 
     nk_layout_row_push(ctx, depth * 12);
     nk_label(ctx, "", NK_TEXT_LEFT);
@@ -122,6 +132,21 @@ static void Workspace_DrawHierarchyNode(EObject* object, int depth)
     {
         nk_label(ctx, " ", NK_TEXT_LEFT);
     }
+
+    // Icon column
+    nk_layout_row_push(ctx, 18);
+    struct nk_image icon;
+    switch(object->innerType)
+    {
+        case EObjectType_ERect:  icon = nk_icon_erect;   break;
+        case EObjectType_EImage: icon = nk_icon_eimage;  break;
+        case EObjectType_EText:  icon = nk_icon_etext;   break;
+        default:                 icon = nk_icon_eobject; break;
+    }
+    nk_image(ctx, icon);
+
+    nk_layout_row_push(ctx, 2);
+    nk_label(ctx, "", NK_TEXT_LEFT);
 
     struct nk_rect bounds = nk_window_get_content_region(ctx);
     nk_layout_row_push(ctx, bounds.w - (depth * 12) - 18);

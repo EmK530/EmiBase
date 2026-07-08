@@ -7,7 +7,7 @@
 
 void _eimage_internal_render(EImage* image, ETransform* t)
 {
-    if(image->BackgroundColor.a > 1)
+    if(image->BackgroundColor.a > 4)
     {
         if (t->Rotation == 0.0f) {
             DrawRectangle((int)(t->Position.x - t->Size.x * 0.5f),(int)(t->Position.y - t->Size.y * 0.5f),(int)t->Size.x,(int)t->Size.y,image->BackgroundColor);
@@ -99,7 +99,7 @@ EImage* EImage_Create(EObject* parent)
     image->_free_func = NULL;
 #endif
     EObject_SetName(image, "EImage");
-    EImage_SetTexture(image, "image/EImageDefaultTexture.png");
+    EImage_SetTexture(image, DEFAULT_IMAGE);
     
     image->BackgroundColor = Color32_new(255, 255, 255, 0);
     image->ImageColor = Color32_new(255, 255, 255, 255);
