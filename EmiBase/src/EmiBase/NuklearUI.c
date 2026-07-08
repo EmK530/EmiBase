@@ -428,6 +428,7 @@ static void Workspace_DrawProperties(EObject* object)
             image->BackgroundColor.g = (uint8_t)(nk_col2.g * 255.0f);
             image->BackgroundColor.b = (uint8_t)(nk_col2.b * 255.0f);
             image->BackgroundColor.a = (uint8_t)(nk_col2.a * 255.0f);
+            break;
         }
 
         case EObjectType_EText:
@@ -505,6 +506,7 @@ static void Workspace_DrawProperties(EObject* object)
             text->BackgroundColor.g = (uint8_t)(nk_col2.g * 255.0f);
             text->BackgroundColor.b = (uint8_t)(nk_col2.b * 255.0f);
             text->BackgroundColor.a = (uint8_t)(nk_col2.a * 255.0f);
+            break;
         }
         nk_layout_row_dynamic(ctx, 8, 1);
         nk_label(ctx, "", NK_TEXT_LEFT);

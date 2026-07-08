@@ -39,6 +39,7 @@ void _etext_internal_render(EText* text, ETransform* t)
                     EmiBase_Attach();
                     text->_dirty = false;
                 }
+                break;
             }
             //case ETextRenderType_Auto:
             {
@@ -97,6 +98,15 @@ void _etext_internal_render(EText* text, ETransform* t)
     void _etext_internal_serialize(BufferWriter* writer, EText* self)
     {
         BW_WriteU8(writer, EObjectType_EText); // Type identifier
+        Color32_serialize(writer, self->BackgroundColor);
+        Color32_serialize(writer, self->TextColor);
+        BW_WriteU32(writer, self->_TextTrueLen);
+        BW_WriteString(writer, self->Text, self->_TextTrueLen);
+        uint8_t fontPathLen = strlen(self->_FontPath);
+        BW_WriteU8(writer, fontPathLen);
+        BW_WriteString(writer, self->_FontPath, fontPathLen);
+        BW_WriteFloat(writer, self->_FontSize);
+        BW_WriteU8(writer, self->_RenderType);
     }
 #endif
 
@@ -166,13 +176,14 @@ void EText_SetTextN(EText* target, const char* text, size_t len)
     target->_dirty = true;
     memcpy((void*)target->Text, text, --len);
     ((char*)target->Text)[len] = '\0';
+    target->_TextTrueLen = len;
 }
 
 void EText_SetRenderType(EText* target, enum ETextRenderType type)
 {
     if(type == target->_RenderType)
         return;
-    target->_dirty = false; // TODO: May have to flip this if Auto needs it in the future
+    //target->_dirty = false; // TODO: May have to flip this if Auto needs it in the future
     target->_RenderType = type;
     /*
     if(type == ETextRenderType_Auto && target->_isTextureValid)
