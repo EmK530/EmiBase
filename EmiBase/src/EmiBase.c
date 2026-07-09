@@ -78,7 +78,9 @@ void EmiBase_ProcessInput()
         for (int i = 0; i <= scene_stack.top; i++) {
             Scene *s = scene_stack.scenes[i];
             if (s && s->OnInput) {
+                _crashhandler_internal_sendstring(s->name);
                 s->OnInput(s, key);
+                _crashhandler_internal_sendstatus(0);
             }
         }
     }

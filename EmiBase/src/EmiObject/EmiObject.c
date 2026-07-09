@@ -83,9 +83,11 @@ EObject* EmiObject_FindN(const char* searchPath, size_t len, EObject* target)
                 break;
             }
         }
-        if(!found)
+        if(!found) {
             target = NULL;
-        if(!found || endchar == '\0')
+            break;
+        }
+        if(endchar == '\0')
             break;
     }
     MemFree(search);
