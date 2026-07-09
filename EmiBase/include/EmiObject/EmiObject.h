@@ -11,6 +11,8 @@ extern bool EmiObject_AutoDraw;
 
 int EmiObject_Init();
 void EmiObject_Draw(int screenWidth, int screenHeight);
+EObject* EmiObject_FindN(const char* searchPath, size_t len, EObject* target);
+EObject* EmiObject_Find(const char* searchPath, EObject* target);
 void EmiObject_Deserialize(const char* filePath);
 void EmiObject_Wipe();
 void EmiObject_SetDrawOffset(EVector2i value);

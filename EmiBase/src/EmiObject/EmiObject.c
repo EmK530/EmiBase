@@ -56,6 +56,44 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
     drawing_offset = (EVector2i){.X = 0, .Y = 0};
 }
 
+EObject* EmiObject_FindN(const char* searchPath, size_t len, EObject* target)
+{
+    char* search = (char*)MemAlloc(len+1);
+    memcpy(search, searchPath, len); search[len] = '\0';
+    char* ptr1 = search;
+    char* ptr2 = search;
+    while(true) // Recursive search loop
+    {
+        ptr2 = ptr1;
+        char endchar = '\0';
+        while(true)
+        {
+            endchar = *ptr1++;
+            if(endchar == '\0' || endchar == '/')
+                break;
+        }
+        *(ptr1-1) = '\0';
+        bool found = false;
+        LinkedObjectList_foreach((target==NULL ? root_objects : target->Children), child)
+        {
+            if(child->Name != NULL && strcmp(child->Name, ptr2) == 0)
+            {
+                target = child;
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+            target = NULL;
+        if(!found || endchar == '\0')
+            break;
+    }
+    MemFree(search);
+    return target;
+}
+
+EObject* EmiObject_Find(const char* searchPath, EObject* target) {return EmiObject_FindN(searchPath, strlen(searchPath), target);}
+
 void _emiobject_internal_wipe_recursively(LinkedObjectList* collection, EObject* object, bool topmost)
 {
     EObject* cur = collection->head;
