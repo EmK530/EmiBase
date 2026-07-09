@@ -20,6 +20,7 @@ int EmiBase_Init()
     CrashHandler_Init();
     _crashhandler_internal_sendstatus(2);
     if(!ContentManager_Init(CONTENT_NAME)) return 2;
+    SetConfigFlags(RAYLIB_FLAGS);
     InitWindow(RES_X, RES_Y, WINDOW_TITLE);
     SetDarkTitleBar();
     if(!IsWindowReady())

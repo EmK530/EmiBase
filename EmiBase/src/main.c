@@ -15,9 +15,6 @@ extern void PostDraw_Overlay();
 
 int EmiMain()
 {
-    //SetConfigFlags(FLAG_VSYNC_HINT);
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-
     int initResult = EmiBase_Init();
     if(initResult != 0) {
         eprintf("[Main] Could not initialize EmiBase\n");
