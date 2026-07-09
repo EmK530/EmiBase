@@ -238,10 +238,12 @@ void EText_SetFontSize(EText* target, float fontSize)
         UnloadFont(target->_CachedFont);
     }
     target->_FontSize = fontSize;
+    target->_dirty = true;
+    if(target->_FontPath == NULL)
+        return;
     target->_CachedFont = ContentManager_LoadFont(target->_FontPath, target->_FontSize);
     if(!IsFontValid(target->_CachedFont))
         return;
-    target->_dirty = true;
     target->_isFontValid = true;
 }
 
