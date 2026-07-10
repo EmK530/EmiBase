@@ -1,3 +1,4 @@
+#include "rlgl.h"
 #include "EmiBase.h"
 #include "EmiBase/NuklearUI.h"
 
@@ -10,7 +11,7 @@
     static int registryCount = 0;
     static int frame = 0;
 
-    static RenderTexture2D pingpong[2];
+    static RenderTexture2D pingpong;
 
     static SceneShaderList *GetList(Scene *s)
     {
@@ -41,10 +42,9 @@
 
     int PostProcess_Init(int screenWidth, int screenHeight)
     {
-        pingpong[0] = LoadRenderTexture(screenWidth, screenHeight);
-        pingpong[1] = LoadRenderTexture(screenWidth, screenHeight);
+        pingpong = LoadRenderTexture(screenWidth, screenHeight);
 
-        if(!IsRenderTextureValid(pingpong[0]) || !IsRenderTextureValid(pingpong[1]))
+        if(!IsRenderTextureValid(pingpong))
         {
             eprintf("[PostProcess] Failed to init RenderTextures\n");
             return 0;
@@ -56,17 +56,14 @@
 
     void PostProcess_Cleanup()
     {
-        UnloadRenderTexture(pingpong[0]);
-        UnloadRenderTexture(pingpong[1]);
+        UnloadRenderTexture(pingpong);
     }
 
     void PostProcess_Resize(int screenWidth, int screenHeight)
     {
-        UnloadRenderTexture(pingpong[0]);
-        UnloadRenderTexture(pingpong[1]);
-        pingpong[0] = LoadRenderTexture(screenWidth, screenHeight);
-        pingpong[1] = LoadRenderTexture(screenWidth, screenHeight);
-        if(!IsRenderTextureValid(pingpong[0]) || !IsRenderTextureValid(pingpong[1]))
+        UnloadRenderTexture(pingpong);
+        pingpong = LoadRenderTexture(screenWidth, screenHeight);
+        if(!IsRenderTextureValid(pingpong))
         {
             eprintf("[PostProcess] Runtime error resizing window\n");
             return;
@@ -112,7 +109,7 @@
         // No shaders registered — draw the scene as-is
         if (!list || list->count == 0) {
             BeginDrawing();
-                ClearBackground(BLACK);
+                rlClearScreenBuffers();
                 DrawTextureRec(
                     sceneTarget->texture,
                     (Rectangle){ 0, 0, sceneTarget->texture.width, -sceneTarget->texture.height },
@@ -133,28 +130,30 @@
                 passes[passCount++] = list->slots[i].shader;
 
         RenderTexture2D *src = sceneTarget;
-        int ppIndex = 0;
-
-        BeginDrawing();
-        ClearBackground(BLACK);
+        bool drawToMainTarget = false;
 
         if(nk_postProcess == 0)
         {
             for (int i = 0; i < passCount; i++) {
                 bool isLast = (i == passCount - 1);
+                RenderTexture2D *target = (drawToMainTarget ? sceneTarget : &pingpong);
 
                 if (isLast) {
+                    if(passCount > 1) rlDisableFramebuffer();
+                    BeginDrawing();
+                    rlClearScreenBuffers();
                     ApplyPass(passes[i], src, time, screenWidth, screenHeight);
                 } else {
-                    BeginTextureMode(pingpong[ppIndex]);
-                        ClearBackground(BLACK);
+                    rlEnableFramebuffer(target->id);
+                        rlClearScreenBuffers();
                         ApplyPass(passes[i], src, time, screenWidth, screenHeight);
-                    EndTextureMode();
-                    src = &pingpong[ppIndex];
-                    ppIndex = 1 - ppIndex;
+                    src = target;
+                    drawToMainTarget = !drawToMainTarget;
                 }
             }
         } else {
+            BeginDrawing();
+            rlClearScreenBuffers();
             DrawTextureRec(
                 src->texture,
                 (Rectangle){ 0, 0, src->texture.width, -src->texture.height },

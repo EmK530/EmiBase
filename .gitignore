@@ -3,5 +3,4 @@ build_temp
 content.epak
 tools/resources.res
 tools/epak_manifest.json
-EmiBase.exe
-EmiBase_UPX.exe
+EmiBase*.exe

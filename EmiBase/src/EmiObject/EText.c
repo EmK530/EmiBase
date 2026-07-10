@@ -120,15 +120,9 @@ void _etext_internal_free(EObject* item)
     if(text->_FontPath != NULL)
         MemFree((void*)text->_FontPath);
     if(text->_isTextureValid)
-    {
-        printf("cache unload\n");
         UnloadRenderTexture(text->_CachedDraw);
-    }
     if(text->_isFontValid)
-    {
-        printf("font unload\n");
         UnloadFont(text->_CachedFont);
-    }
 }
 
 uint32_t next_pow2(uint32_t n)

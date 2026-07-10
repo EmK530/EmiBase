@@ -33,7 +33,7 @@
 
 // Raylib config flags that will be applied before EmiBase initializes the game window.
 #ifndef RAYLIB_FLAGS
-    #define RAYLIB_FLAGS FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE
+    #define RAYLIB_FLAGS FLAG_WINDOW_RESIZABLE
 #endif
 
 // What scene to render on program start, needs to exist or EmiBase will fail to load.
@@ -52,7 +52,7 @@
 #endif
 
 /*
-    Compiles EmiBase with a Post Processing wrapper. Breaks software rendering.
+    Compiles EmiBase with a Post Processing wrapper. Breaks software rendering and can lower framerate.
     If disabled, all PostProcess functions will be replaced with dummy variants.
 */
 #ifndef SUPPORTS_POSTPROCESS
@@ -107,7 +107,7 @@ void EmiBase_DetachedTextureMode(RenderTexture2D tex); // EmiBase-safe version o
 RenderTexture2D EmiBase_LoadRenderTexture(int width, int height); // EmiBase-safe version of LoadRenderTexture that ensures Detach does not break.
 void EmiBase_Attach(); // Return rendering control back to EmiBase, needs to be called before the end of a scene if you ran Detach.
 
-#define EMIBASE_VER "v1.0.1"
+#define EMIBASE_VER "v1.0.2"
 
 #ifndef GIT_HASH
     #define GIT_HASH "00000000"

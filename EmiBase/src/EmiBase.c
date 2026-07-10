@@ -87,6 +87,7 @@ void EmiBase_ProcessInput()
     }
 }
 
+static bool firstrun = true;
 void EmiBase_BeginDrawing()
 {
     int screenWidth = GetScreenWidth();
@@ -97,8 +98,11 @@ void EmiBase_BeginDrawing()
         PostProcess_Resize(screenWidth, screenHeight);
         UnloadRenderTexture(target);
         target = LoadRenderTexture(screenWidth, screenHeight);
+        BeginTextureMode(target);
+    } else if(firstrun) {
+        firstrun = false;
+        BeginTextureMode(target);
     }
-    BeginTextureMode(target);
 #else
     BeginDrawing();
 #endif
@@ -208,7 +212,8 @@ void EmiBase_Attach()
     #if SUPPORTS_POSTPROCESS == 1
             int screenWidth = GetScreenWidth();
             int screenHeight = GetScreenHeight();
-            EndTextureMode();
+            rlDrawRenderBatchActive();
+            rlDisableFramebuffer();
             overlayRemember = overlay;
             PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, doubleDraw);
     #else
@@ -227,7 +232,8 @@ void EmiBase_Attach()
     #if SUPPORTS_POSTPROCESS == 1
             int screenWidth = GetScreenWidth();
             int screenHeight = GetScreenHeight();
-            EndTextureMode();
+            rlDrawRenderBatchActive();
+            rlDisableFramebuffer();
             PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, overlay);
     #else
             overlay();
