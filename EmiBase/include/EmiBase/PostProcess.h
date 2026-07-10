@@ -7,6 +7,9 @@
 typedef struct {
     Shader  *shader;
     bool     active;
+    int      timeLoc;
+    int      resLoc;
+    int      frameLoc;
 } ShaderSlot;
 
 typedef struct {

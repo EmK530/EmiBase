@@ -20,17 +20,14 @@
         return NULL;
     }
 
-    static void ApplyPass(Shader *s, RenderTexture2D *src, float time, int w, int h)
+    static void ApplyPass(ShaderSlot *s, RenderTexture2D *src, float time, int w, int h)
     {
         Vector2 res = { w, h };
-        int timeLoc = GetShaderLocation(*s, "time");
-        int resLoc = GetShaderLocation(*s, "resolution");
-        int frameLoc = GetShaderLocation(*s, "frame");
-        if (timeLoc != -1) SetShaderValue(*s, timeLoc, &time, SHADER_UNIFORM_FLOAT);
-        if (resLoc != -1) SetShaderValue(*s, resLoc,  &res,  SHADER_UNIFORM_VEC2);
-        if (frameLoc != -1) SetShaderValue(*s, frameLoc,  &frame,  SHADER_UNIFORM_INT);
+        if(s->timeLoc != -1) SetShaderValue(*s->shader, s->timeLoc, &time, SHADER_UNIFORM_FLOAT);
+        if(s->resLoc != -1) SetShaderValue(*s->shader, s->resLoc,  &res,  SHADER_UNIFORM_VEC2);
+        if(s->frameLoc != -1) SetShaderValue(*s->shader, s->frameLoc,  &frame,  SHADER_UNIFORM_INT);
 
-        BeginShaderMode(*s);
+        BeginShaderMode(*s->shader);
             DrawTextureRec(
                 src->texture,
                 (Rectangle){ 0, 0, src->texture.width, -src->texture.height },
@@ -83,8 +80,11 @@
     {
         SceneShaderList *list = GetList(s);
         if (!list) { eprintf("[PostProcess] Attempted to add a shader to an unregistered scene!\n"); return; }
+        int timeLoc = GetShaderLocation(*shader, "time");
+        int resLoc = GetShaderLocation(*shader, "resolution");
+        int frameLoc = GetShaderLocation(*shader, "frame");
         if (list->count < MAX_SCENE_SHADERS) {
-            list->slots[list->count++] = (ShaderSlot){ .shader = shader, .active = true };
+            list->slots[list->count++] = (ShaderSlot){ .shader = shader, .active = true, .timeLoc = timeLoc, .resLoc = resLoc, .frameLoc = frameLoc };
         }
     }
 
@@ -122,12 +122,12 @@
         }
 
         // Build pass list from scene's active shaders only
-        Shader *passes[MAX_SCENE_SHADERS];
+        ShaderSlot *passes[MAX_SCENE_SHADERS];
         int passCount = 0;
 
         for (int i = 0; i < list->count; i++)
             if (list->slots[i].active)
-                passes[passCount++] = list->slots[i].shader;
+                passes[passCount++] = &list->slots[i];
 
         RenderTexture2D *src = sceneTarget;
         bool drawToMainTarget = false;
@@ -136,7 +136,6 @@
         {
             for (int i = 0; i < passCount; i++) {
                 bool isLast = (i == passCount - 1);
-                RenderTexture2D *target = (drawToMainTarget ? sceneTarget : &pingpong);
 
                 if (isLast) {
                     if(passCount > 1) rlDisableFramebuffer();
@@ -144,6 +143,7 @@
                     rlClearScreenBuffers();
                     ApplyPass(passes[i], src, time, screenWidth, screenHeight);
                 } else {
+                    RenderTexture2D *target = (drawToMainTarget ? sceneTarget : &pingpong);
                     rlEnableFramebuffer(target->id);
                         rlClearScreenBuffers();
                         ApplyPass(passes[i], src, time, screenWidth, screenHeight);

@@ -102,6 +102,8 @@ void EmiBase_BeginDrawing()
     } else if(firstrun) {
         firstrun = false;
         BeginTextureMode(target);
+    } else {
+        rlEnableFramebuffer(target.id);
     }
 #else
     BeginDrawing();
