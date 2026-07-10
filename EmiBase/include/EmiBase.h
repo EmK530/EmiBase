@@ -33,7 +33,7 @@
 
 // Raylib config flags that will be applied before EmiBase initializes the game window.
 #ifndef RAYLIB_FLAGS
-    #define RAYLIB_FLAGS FLAG_WINDOW_RESIZABLE
+    #define RAYLIB_FLAGS FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE
 #endif
 
 // What scene to render on program start, needs to exist or EmiBase will fail to load.
@@ -61,7 +61,7 @@
 
 // I mean, this one is pretty straightforward.
 #ifndef FPS_LIMIT
-    #define FPS_LIMIT 0
+    #define FPS_LIMIT 1000
 #endif
 
 // Default window width in pixels.
