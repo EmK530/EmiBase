@@ -5,7 +5,11 @@ CFLAGS := -O0 -s \
          -IGame/include \
          -IEmiBase/external/raylib-nuklear/include \
          -DGIT_HASH=\"$(shell git rev-parse --short HEAD | tr a-z A-Z)\" \
-         -DGIT_DIRTY=\"$(shell git diff --quiet -- EmiBase/src EmiBase/include/EmiBase EmiBase/include/EmiObject EmiBase/include/Libraries || echo -dirty)\"
+         -DGIT_DIRTY=\"$(shell git diff --quiet -- EmiBase/src EmiBase/include/EmiBase EmiBase/include/EmiObject EmiBase/include/Libraries || echo -dirty)\" \
+		 $(shell branch=$$(git rev-parse --abbrev-ref HEAD); \
+		 	if [ "$$branch" != "main" ]; then \
+		 		printf '%s' "-DGIT_BRANCH=\\\"-$$branch\\\""; \
+		 	fi)
 
 RAYLIB_SRC ?= C:\\raylib\\raylib\\src
 

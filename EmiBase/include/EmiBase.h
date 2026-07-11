@@ -123,6 +123,9 @@ void EmiBase_Attach(); // Return rendering control back to EmiBase, needs to be 
 #ifndef GIT_DIRTY
     #define GIT_DIRTY ""
 #endif
+#ifndef GIT_BRANCH
+    #define GIT_BRANCH ""
+#endif
 
 #if NO_LOGGING == 0
     void eprintf(const char* fmt, ...);

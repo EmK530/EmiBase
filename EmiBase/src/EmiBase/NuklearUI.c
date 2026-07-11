@@ -747,7 +747,7 @@ void NuklearUI_Draw()
         }
 
         nk_layout_row_push(ctx, w - 185);
-        nk_label(ctx, "EmiBase " EMIBASE_VER " (" GIT_HASH GIT_DIRTY ") | " PROJECT_NAME " " PROJECT_VER, NK_TEXT_RIGHT);
+        nk_label(ctx, "EmiBase " EMIBASE_VER GIT_BRANCH " (" GIT_HASH GIT_DIRTY ") | " PROJECT_NAME " " PROJECT_VER, NK_TEXT_RIGHT);
         nk_layout_row_end(ctx);
     }
     nk_end(ctx);
