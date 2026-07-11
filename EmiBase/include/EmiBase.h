@@ -115,7 +115,7 @@ void EmiBase_DetachedTextureMode(RenderTexture2D tex); // EmiBase-safe version o
 RenderTexture2D EmiBase_LoadRenderTexture(int width, int height); // EmiBase-safe version of LoadRenderTexture that ensures Detach does not break.
 void EmiBase_Attach(); // Return rendering control back to EmiBase, needs to be called before the end of a scene if you ran Detach.
 
-#define EMIBASE_VER "v1.1.0-dev"
+#define EMIBASE_VER "v1.0.4"
 
 #ifndef GIT_HASH
     #define GIT_HASH "00000000"
