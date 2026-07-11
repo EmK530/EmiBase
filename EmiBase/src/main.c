@@ -4,6 +4,7 @@
 
 #define CONTEXT_EMIMAIN
 #include "EmiBase.h"
+#include "rlgl.h"
 
 // Road ends here :)
 
@@ -13,7 +14,7 @@
 
 extern void PostDraw_Overlay();
 
-int EmiMain()
+int main()
 {
     int initResult = EmiBase_Init();
     if(initResult != 0) {
@@ -25,12 +26,12 @@ int EmiMain()
 
     eprintf("[EmiBase] Initialized!\n");
 
+    int frames = 0;
     while (!WindowShouldClose())
     {
         EmiBase_ProcessInput();
         EmiBase_BeginDrawing();
 
-        ClearBackground(BLACK);
         EmiBase_StepScenes();
 
         EmiBase_EndDrawing(PostDraw_Overlay);
@@ -38,7 +39,4 @@ int EmiMain()
 
     EmiBase_Cleanup();
     CloseWindow();
-    WinExitProcess(0);
-
-    return 0;
 }

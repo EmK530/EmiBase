@@ -4,18 +4,21 @@
 #define EMIBASE_INTERNAL
 
 #include "EmiBase.h"
+#include "rlgl.h"
 
 void _eimage_internal_render(EImage* image, ETransform* t)
 {
-    if(image->BackgroundColor.a > 4)
+#if SOFTWARE_OPTIMIZATIONS == 1
+    if(image->BackgroundColor.a > 127)
     {
-        if (t->Rotation == 0.0f) {
-            DrawRectangle((int)(t->Position.x - t->Size.x * 0.5f),(int)(t->Position.y - t->Size.y * 0.5f),(int)t->Size.x,(int)t->Size.y,image->BackgroundColor);
-        } else {
-            Rectangle r = { t->Position.x, t->Position.y, t->Size.x, t->Size.y };
-            Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
-            DrawRectanglePro(r, origin, t->Rotation, image->BackgroundColor);
-        }
+        image->BackgroundColor.a = 255;
+#else
+    if(image->BackgroundColor.a > 2)
+    {
+#endif
+        Rectangle r = { t->Position.x, t->Position.y, t->Size.x, t->Size.y };
+        Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
+        DrawRectanglePro(r, origin, t->Rotation, image->BackgroundColor);
     }
     if(image->isTextureValid)
     {

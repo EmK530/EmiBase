@@ -7,23 +7,11 @@
 void _erect_internal_render(ERect* rect, ETransform* t)
 {
     Color color = { rect->Color.r, rect->Color.g, rect->Color.b, rect->Color.a };
+    if(rect->Color.a == 0) return;
 
-    if (t->Rotation == 0.0f)
-    {
-        DrawRectangle(
-            (int)(t->Position.x - t->Size.x * 0.5f),
-            (int)(t->Position.y - t->Size.y * 0.5f),
-            (int)t->Size.x,
-            (int)t->Size.y,
-            color
-        );
-    }
-    else
-    {
-        Rectangle r = { t->Position.x, t->Position.y, t->Size.x, t->Size.y };
-        Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
-        DrawRectanglePro(r, origin, t->Rotation, color);
-    }
+    Rectangle r = { t->Position.x, t->Position.y, t->Size.x, t->Size.y };
+    Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
+    DrawRectanglePro(r, origin, t->Rotation, color);
 }
 
 #ifndef RELEASE

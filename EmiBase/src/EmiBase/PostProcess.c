@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#if SUPPORTS_POSTPROCESS == 1
+#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
     Shader globalCRTShader;
 
     static SceneShaderList registry[MAX_SCENES];

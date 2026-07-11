@@ -347,7 +347,8 @@ static void Workspace_DrawProperties(EObject* object)
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Rotation", NK_TEXT_LEFT);
     nk_layout_row_dynamic(ctx, 22, 1);
-    nk_property_float(ctx, "°", 0.0f, &object->Rotation, 360.0f, 0.5f, 0.5f);
+    nk_property_float(ctx, "°", -360.0f, &object->Rotation, 720.0f, 0.5f, 0.5f);
+    object->Rotation = fmodf(object->Rotation, 360.0f);
 
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Anchor", NK_TEXT_LEFT);
@@ -706,7 +707,7 @@ void NuklearUI_Draw()
             nk_checkbox_label(ctx, "WorkEarly",  &nk_workEarly);
             nk_checkbox_label(ctx, "EmiObject",  &nk_emiObject);
             nk_checkbox_label(ctx, "WorkLate",   &nk_workLate);
-#if SUPPORTS_POSTPROCESS == 1
+#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
             nk_checkbox_label(ctx, "PostProcess", &nk_postProcess);
 #endif
             nk_checkbox_label(ctx, "Overlay",    &nk_overlay);

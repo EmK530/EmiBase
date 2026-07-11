@@ -1,22 +1,28 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define EMIBASE_INTERNAL
 
 #include "rlgl.h"
 #include "EmiBase.h"
+#if RAYLIB_VERSION_MAJOR < 6
+    #error "EmiBase was developed for raylib 6.0 and above, please upgrade your version of raylib."
+#endif
 #include "EmiBase/CrashHandler.h"
 #include "EmiBase/NuklearUI.h" // Don't worry, it's not part of Release.
 
-#if SUPPORTS_POSTPROCESS == 1
+#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
 RenderTexture2D target;
 #endif
 bool detached = false;
 
-extern int main();
+extern int Game_PreInit();
+extern int Game_Initialize();
 
 int EmiBase_Init()
 {
+    Game_PreInit();
     CrashHandler_Init();
     _crashhandler_internal_sendstatus(2);
     if(!ContentManager_Init(CONTENT_NAME)) return 2;
@@ -33,7 +39,7 @@ int EmiBase_Init()
     if(!PostProcess_Init(RES_X, RES_Y)) return 1;
     if(!AudioManager_Init()) return 1;
 
-#if SUPPORTS_POSTPROCESS == 1
+#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
     target = LoadRenderTexture(RES_X, RES_Y);
     if(!IsRenderTextureValid(target))
     {
@@ -45,7 +51,7 @@ int EmiBase_Init()
     SetExitKey(KEY_NULL);
     SetTargetFPS(FPS_LIMIT);
 
-    main(); // Call the Game entrypoint to load scenes.
+    Game_Initialize(); // Call the Game entrypoint to load scenes.
 
     Scene *start = find_scene(STARTUP_SCENE);
     if (start) {
@@ -87,12 +93,27 @@ void EmiBase_ProcessInput()
     }
 }
 
+#if SOFTWARE_OPTIMIZATIONS == 1
+    extern void *swGetColorBuffer(int *width, int *height);
+    void ClearBackgroundRLSW()
+    {
+        int width, height;
+        uint32_t *pixels = (uint32_t *)swGetColorBuffer(&width, &height);
+        memset(pixels, 0, (size_t)width * height * sizeof(uint32_t));
+    }
+    static bool shouldClear = true;
+    void EmiBase_SetScreenClearEnabled(bool enabled)
+    {
+        shouldClear = enabled;
+    }
+#endif
+
 static bool firstrun = true;
 void EmiBase_BeginDrawing()
 {
     int screenWidth = GetScreenWidth();
     int screenHeight = GetScreenHeight();
-#if SUPPORTS_POSTPROCESS == 1
+#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
     if (IsWindowResized())
     {
         PostProcess_Resize(screenWidth, screenHeight);
@@ -104,9 +125,16 @@ void EmiBase_BeginDrawing()
         BeginTextureMode(target);
     } else {
         rlEnableFramebuffer(target.id);
+        rlClearScreenBuffers();
     }
 #else
     BeginDrawing();
+#if SOFTWARE_OPTIMIZATIONS == 1
+if(shouldClear)
+    ClearBackgroundRLSW();
+#else
+    DrawRectangle(0, 0, screenWidth, screenHeight, BLACK); // This performs better than ClearBackground in software???
+#endif
 #endif
 }
 
@@ -173,7 +201,7 @@ RenderTexture2D EmiBase_LoadRenderTexture(int width, int height)
         if (rlFramebufferComplete(tex.id))
             TRACELOG(LOG_INFO, "FBO: [ID %i] Framebuffer object created successfully", tex.id);
 
-#if SUPPORTS_POSTPROCESS == 1
+#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
         rlEnableFramebuffer(target.id);
 #else
         rlEnableFramebuffer(0);
@@ -192,7 +220,7 @@ void EmiBase_Attach()
         return;
     }
     detached = false;
-#if SUPPORTS_POSTPROCESS == 1
+#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
     _emibase_restore_framebuffer(target.id, target.texture.width, target.texture.height);
 #else
     _emibase_restore_framebuffer(0, GetScreenWidth(), GetScreenHeight());
@@ -211,7 +239,7 @@ void EmiBase_Attach()
     void EmiBase_EndDrawing(void (*overlay)())
     {
         AudioManager_Update();
-    #if SUPPORTS_POSTPROCESS == 1
+    #if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
             int screenWidth = GetScreenWidth();
             int screenHeight = GetScreenHeight();
             rlDrawRenderBatchActive();
@@ -231,7 +259,7 @@ void EmiBase_Attach()
     void EmiBase_EndDrawing(void (*overlay)())
     {
         AudioManager_Update();
-    #if SUPPORTS_POSTPROCESS == 1
+    #if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
             int screenWidth = GetScreenWidth();
             int screenHeight = GetScreenHeight();
             rlDrawRenderBatchActive();

@@ -9,7 +9,7 @@ CFLAGS := -O0 -s \
 
 RAYLIB_SRC ?= C:\\raylib\\raylib\\src
 
-LDFLAGS = -L. -L$(RAYLIB_SRC) -Wl,--gc-sections,-eEmiMain
+LDFLAGS = -L. -L$(RAYLIB_SRC) -Wl,--gc-sections
 LDLIBS  = -lraylib -lopengl32 -lgdi32 -ldwmapi -lwinmm
 
 OBJ_DIR    := build_temp
@@ -37,7 +37,7 @@ debug: $(OBJS) $(RES_FILE)
 	@echo === Debug build success! ===
 	./$(OUT)
 
-release: CFLAGS += -mwindows -DSUB_WINDOWS -DRELEASE
+release: CFLAGS += -mwindows -DRELEASE
 release: $(PSTR_OBJS) $(RES_FILE)
 	$(CC) $(CFLAGS) -o $(OUT) $^ $(LDFLAGS) $(LDLIBS)
 	python tools/pak_builder.py

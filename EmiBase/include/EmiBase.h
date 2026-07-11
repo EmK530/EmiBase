@@ -51,6 +51,11 @@
     #define DEFAULT_IMAGE "EmiBase/EImage.png"
 #endif
 
+// Enables various EmiBase tweaks to significantly speed up the performance of software rendering. Disables Post Processing.
+#ifndef SOFTWARE_OPTIMIZATIONS
+    #define SOFTWARE_OPTIMIZATIONS 0
+#endif
+
 /*
     Compiles EmiBase with a Post Processing wrapper. Breaks software rendering and can lower framerate.
     If disabled, all PostProcess functions will be replaced with dummy variants.
@@ -76,7 +81,7 @@
 
 // Removes all logging made by function calls to eprintf, strings should end up discarded by the compiler.
 #ifndef NO_LOGGING
-    #ifdef SUB_WINDOWS
+    #ifdef RELEASE
         #define NO_LOGGING 1
     #else
         #define NO_LOGGING 0
@@ -102,12 +107,15 @@
     void EmiBase_ProcessInput(); // Sends queued input signals to the active scenes.
     void EmiBase_Cleanup();
 #endif
+#if SOFTWARE_OPTIMIZATIONS == 1
+    void EmiBase_SetScreenClearEnabled(bool enabled); // Toggles screen clearing, necessary to disable for performance if your elements draw over the entire screen.
+#endif
 void EmiBase_Detach(); // EmiBase-safe version of EndDrawing to transfer full rendering control to a scene. Remember to call Attach after you are done.
 void EmiBase_DetachedTextureMode(RenderTexture2D tex); // EmiBase-safe version of BeginTextureMode to draw in a RenderTexture without flushing the screen.
 RenderTexture2D EmiBase_LoadRenderTexture(int width, int height); // EmiBase-safe version of LoadRenderTexture that ensures Detach does not break.
 void EmiBase_Attach(); // Return rendering control back to EmiBase, needs to be called before the end of a scene if you ran Detach.
 
-#define EMIBASE_VER "v1.0.3"
+#define EMIBASE_VER "v1.1.0"
 
 #ifndef GIT_HASH
     #define GIT_HASH "00000000"
