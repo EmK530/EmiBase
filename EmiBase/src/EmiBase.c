@@ -4,8 +4,8 @@
 
 #define EMIBASE_INTERNAL
 
-#include "rlgl.h"
 #include "EmiBase.h"
+#include "rlgl.h"
 #if RAYLIB_VERSION_MAJOR < 6
     #error "EmiBase was developed for raylib 6.0 and above, please upgrade your version of raylib."
 #endif

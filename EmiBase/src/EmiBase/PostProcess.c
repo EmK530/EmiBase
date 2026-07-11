@@ -1,5 +1,5 @@
-#include "rlgl.h"
 #include "EmiBase.h"
+#include "rlgl.h"
 #include "EmiBase/NuklearUI.h"
 
 #include <stdio.h>
