@@ -21,7 +21,7 @@ typedef struct EImage EImage;
         char* _loadedTexturePath;
     #endif
         Texture2D _loadedTexture; // Internal stored texture
-        bool isTextureValid;
+        uint8_t textureState;
 
         Color BackgroundColor; // Background color
         Color ImageColor; // Image color tint

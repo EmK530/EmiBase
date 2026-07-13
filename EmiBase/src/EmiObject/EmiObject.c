@@ -9,10 +9,16 @@
 #endif
 
 LinkedObjectList root_objects;
+bool EImage_IsDefaultValid = false;
+Texture2D EImage_DefaultTexture;
 
 int EmiObject_Init()
 {
     root_objects = LinkedObjectList_create();
+    EImage_DefaultTexture = ContentManager_LoadTexture(DEFAULT_IMAGE);
+    EImage_IsDefaultValid = IsTextureValid(EImage_DefaultTexture);
+    if(!EImage_IsDefaultValid)
+        eprintf("[EmiObject] WARNING: The path '" DEFAULT_IMAGE "' for DEFAULT_IMAGE could not be loaded.");
     eprintf("[EmiObject] Ready!\n");
     return 1;
 }
@@ -155,9 +161,10 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
             {
                 EImage* image = EImage_Create(parent);
                 uint8_t pathLen = BR_ReadU8(reader);
-                char* path = BR_ReadString(reader, pathLen);
+                char* path = pathLen == 0 ? NULL : BR_ReadString(reader, pathLen);
                 EImage_SetTexture(image, path);
-                MemFree(path);
+                if(path != NULL)
+                    MemFree(path);
                 image->BackgroundColor = Color32_deserialize(reader);
                 image->ImageColor = Color32_deserialize(reader);
                 obj = (EObject*)image;

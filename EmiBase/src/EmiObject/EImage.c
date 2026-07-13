@@ -20,35 +20,55 @@ void _eimage_internal_render(EImage* image, ETransform* t)
         Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
         DrawRectanglePro(r, origin, t->Rotation, image->BackgroundColor);
     }
-    if(image->isTextureValid)
+    if(image->textureState != 0)
     {
-        Rectangle src = { 0, 0, image->_loadedTexture.width, image->_loadedTexture.height };
         Rectangle r = { t->Position.x, t->Position.y, t->Size.x, t->Size.y };
         Vector2 origin = { t->Size.x * 0.5f, t->Size.y * 0.5f };
-        DrawTexturePro(image->_loadedTexture, src, r, origin, t->Rotation, image->ImageColor);
+        if(image->textureState == 2) {
+            Rectangle src = { 0, 0, EImage_DefaultTexture.width, EImage_DefaultTexture.height };
+            DrawTexturePro(EImage_DefaultTexture, src, r, origin, t->Rotation, image->ImageColor);
+        } else {
+            Rectangle src = { 0, 0, image->_loadedTexture.width, image->_loadedTexture.height };
+            DrawTexturePro(image->_loadedTexture, src, r, origin, t->Rotation, image->ImageColor);
+        }
     }
 }
 
 void EImage_SetTexture(EImage* image, const char* texturePath)
 {
-    size_t dataSize = strlen(texturePath) + 1;
+    bool matches = true;
+    size_t dataSize = 0;
+    if(texturePath != NULL)
+    {
+        matches = strcmp(texturePath, DEFAULT_IMAGE) == 0;
+        if(!matches)
+            dataSize = strlen(texturePath) + 1;
+    }
 #ifndef RELEASE
     if(image->_loadedTexturePath != NULL)
         MemFree(image->_loadedTexturePath);
-    image->_loadedTexturePath = MemAlloc(dataSize);
-    if(image->_loadedTexturePath != NULL)
-        memcpy(image->_loadedTexturePath, texturePath, dataSize);
+    if(!matches)
+    {
+        image->_loadedTexturePath = MemAlloc(dataSize);
+        if(image->_loadedTexturePath != NULL)
+            memcpy(image->_loadedTexturePath, texturePath, dataSize);
+    }
 #endif
-    if(image->isTextureValid)
+    if(image->textureState == 1)
     {
         UnloadTexture(image->_loadedTexture);
-        image->isTextureValid = false;
+        image->textureState = false;
+    }
+    if(texturePath == NULL || matches)
+    {
+        image->textureState = 2; // Default image;
+        return;
     }
     Texture2D loaded = ContentManager_LoadTexture(texturePath);
     if(IsTextureValid(loaded))
     {
         image->_loadedTexture = loaded;
-        image->isTextureValid = true;
+        image->textureState = true;
     }
 }
 
@@ -56,9 +76,13 @@ void EImage_SetTexture(EImage* image, const char* texturePath)
     void _eimage_internal_serialize(BufferWriter* writer, EImage* self)
     {
         BW_WriteU8(writer, EObjectType_EImage); // Type identifier
-        uint8_t pathSize = strlen(self->_loadedTexturePath);
-        BW_WriteU8(writer, pathSize);
-        BW_WriteString(writer, self->_loadedTexturePath, pathSize);
+        if(self->_loadedTexturePath == NULL) {
+            BW_WriteU8(writer, 0);
+        } else {
+            uint8_t pathSize = strlen(self->_loadedTexturePath);
+            BW_WriteU8(writer, pathSize);
+            BW_WriteString(writer, self->_loadedTexturePath, pathSize);
+        }
         Color32_serialize(writer, self->BackgroundColor);
         Color32_serialize(writer, self->ImageColor);
     }
@@ -72,7 +96,7 @@ extern void _eobject_internal_initialize(EObject* object);
         EImage* image = (EImage*)item;
         MemFree(image->_loadedTexturePath);
         image->_loadedTexturePath = NULL;
-        if(image->isTextureValid)
+        if(image->textureState == 1)
             UnloadTexture(image->_loadedTexture);
     }
 #endif
@@ -97,12 +121,12 @@ EImage* EImage_Create(EObject* parent)
 #ifndef RELEASE
     image->_serialize_func = (void(*)(BufferWriter*, EObject*))_eimage_internal_serialize;
     image->_loadedTexturePath = NULL;
+    image->textureState = 2;
     image->_free_func = _eimage_internal_free;
 #else
     image->_free_func = NULL;
 #endif
     EObject_SetName(image, "EImage");
-    EImage_SetTexture(image, DEFAULT_IMAGE);
     
     image->BackgroundColor = Color32_new(255, 255, 255, 0);
     image->ImageColor = Color32_new(255, 255, 255, 255);

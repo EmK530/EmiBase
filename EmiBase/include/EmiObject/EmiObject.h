@@ -19,6 +19,8 @@
 
 extern LinkedObjectList root_objects;
 extern bool EmiObject_AutoDraw;
+extern bool EImage_IsDefaultValid;
+extern Texture EImage_DefaultTexture;
 
 int EmiObject_Init();
 void EmiObject_Draw(int screenWidth, int screenHeight);

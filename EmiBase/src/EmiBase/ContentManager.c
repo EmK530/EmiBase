@@ -40,9 +40,12 @@ static void crypt_buffer(unsigned char *buffer, size_t size, uint32_t fileOffset
 
 static int read(void *buffer, size_t size)
 {
-    long offset = ftell(gPakFile);
     int result = fread(buffer, 1, size, gPakFile);
-    if(isEncrypted) crypt_buffer((unsigned char*)buffer, size, (uint32_t)offset);
+    if(isEncrypted)
+    {
+        long offset = ftell(gPakFile);
+        crypt_buffer((unsigned char*)buffer, size, (uint32_t)offset);
+    }
     return result;
 }
 

@@ -296,10 +296,15 @@ static void Workspace_DrawProperties(EObject* object)
             case EObjectType_EImage:
             {
                 EImage* image = (EImage*)object;
-                nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
-                if (nk_texture_buf_len > 127) nk_texture_buf_len = 127;
-                memcpy(nk_texture_buf, image->_loadedTexturePath, nk_texture_buf_len);
-                nk_texture_buf[nk_texture_buf_len] = '\0';
+                if(image->_loadedTexturePath == NULL) {
+                    nk_texture_buf_len = 0;
+                    nk_texture_buf[0] = '\0';
+                } else {
+                    nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
+                    if (nk_texture_buf_len > 127) nk_texture_buf_len = 127;
+                    memcpy(nk_texture_buf, image->_loadedTexturePath, nk_texture_buf_len);
+                    nk_texture_buf[nk_texture_buf_len] = '\0';
+                }
                 break;
             }
             case EObjectType_EText:
@@ -424,7 +429,7 @@ static void Workspace_DrawProperties(EObject* object)
             nk_layout_row_dynamic(ctx, 18, 1);
             nk_label(ctx, "Texture", NK_TEXT_LEFT);
             nk_layout_row_dynamic(ctx, 22, 2);
-            nk_label(ctx, image->_loadedTexturePath ? image->_loadedTexturePath : "(unknown)", NK_TEXT_LEFT);
+            nk_label(ctx, image->_loadedTexturePath ? image->_loadedTexturePath : "(none)", NK_TEXT_LEFT);
             if (nk_button_label(ctx, "Change"))
                 nk_texture_editing = true;
 
