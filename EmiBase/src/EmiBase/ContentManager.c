@@ -4,8 +4,8 @@
 
 #include "EmiBase.h"
 
-#define SPAK_MAGIC "EPAK"
-#define SFCH_MAGIC "EFCH"
+#define SPAK_MAGIC 0x4B415045 // "EPAK"
+#define SFCH_MAGIC 0x48434645 // "EFCH"
 
 static FILE *gPakFile = NULL;
 static LinkedList *gEntries = NULL;
@@ -113,10 +113,10 @@ int ContentManager_Init(const char *pakPath)
 
     gEntries = LinkedList_create();
 
-    char magic[4];
-    read(magic, 4);
+    uint32_t magic;
+    read(&magic, 4);
 
-    if(memcmp(magic, SPAK_MAGIC, 4) != 0)
+    if(magic != SPAK_MAGIC)
     {
         eprintf("[ContentManager] Invalid pak header\n");
         WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 1)", MB_TOPMOST | MB_ICONERROR);
@@ -148,10 +148,10 @@ int ContentManager_Init(const char *pakPath)
 
     for(uint32_t i = 0; i < fileCount; i++)
     {
-        char chunkMagic[4];
-        read(chunkMagic, 4);
+        uint32_t chunkMagic;
+        read(&chunkMagic, 4);
 
-        if(memcmp(chunkMagic, SFCH_MAGIC, 4) != 0)
+        if(chunkMagic != SFCH_MAGIC)
         {
             eprintf("[ContentManager] Invalid chunk header\n");
             WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 2)", MB_TOPMOST | MB_ICONERROR);

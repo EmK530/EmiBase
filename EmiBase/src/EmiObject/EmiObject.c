@@ -214,16 +214,14 @@ void EmiObject_Deserialize(const char* filePath)
     }
     
     BufferReader* reader = BR_CreateFromMemory(data, size);
-    char* magic = BR_ReadString(reader, 4);
-    if(strcmp(magic, "OPAK") != 0 && strcmp(magic, "EOBJ") != 0)
+    uint32_t magic = BR_ReadU32(reader);
+    if(magic != OPAK_MAGIC && magic != EOBJ_MAGIC)
     {
-        MemFree(magic);
         BR_Destroy(reader);
         MemFree(data);
         eprintf("[EmiObject] Deserialization failed, invalid header magic.\n");
         return;
     }
-    MemFree(magic);
     FileVersion = BR_ReadU8(reader);
     if(FileVersion > 2)
     {

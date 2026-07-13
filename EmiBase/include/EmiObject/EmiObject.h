@@ -10,6 +10,13 @@
     #define OPAK_VERSION 2
 #endif
 
+#ifndef OPAK_MAGIC
+    #define OPAK_MAGIC 0x4B41504F
+#endif
+#ifndef EOBJ_MAGIC
+    #define EOBJ_MAGIC 0x4A424F45
+#endif
+
 extern LinkedObjectList root_objects;
 extern bool EmiObject_AutoDraw;
 
