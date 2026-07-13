@@ -23,7 +23,7 @@ void SFunc (Init)(Scene *s) {
 ERect* source = NULL;
 
 void SFunc (Prepare)(Scene *s) {
-    EmiObject_Deserialize("object/Demo.eobj");
+    EmiObject_Deserialize("object/Demo.opak");
 
     eprintf("[Scene." SCENE_STR "] Prepared\n");
 }

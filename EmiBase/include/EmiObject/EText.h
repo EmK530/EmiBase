@@ -7,6 +7,10 @@
     #include "Libraries/BufferWriter.h"
 #endif
 
+#ifndef ETEXT_VERSION
+    #define ETEXT_VERSION 1
+#endif
+
 #define ETEXT_TEXTURE_PADDING 1
 
 enum ETextRenderType

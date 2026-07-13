@@ -6,6 +6,10 @@
 #include "EmiObject/EText.h"
 #include "EmiObject/LinkedObjectList.h"
 
+#ifndef OPAK_VERSION
+    #define OPAK_VERSION 2
+#endif
+
 extern LinkedObjectList root_objects;
 extern bool EmiObject_AutoDraw;
 

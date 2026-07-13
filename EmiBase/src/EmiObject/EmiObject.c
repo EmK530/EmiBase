@@ -129,9 +129,14 @@ void EmiObject_Wipe()
     NuklearUI_ResetHighlight();
 }
 
+static uint8_t FileVersion = 1;
+static uint8_t EObjectVersion = 1;
+static uint8_t ERectVersion = 1;
+static uint8_t EImageVersion = 1;
+static uint8_t ETextVersion = 1;
 void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
 {
-    uint32_t obj_count = BR_ReadU32(reader);
+    uint32_t obj_count = FileVersion == 1 ? BR_ReadU32(reader) : BR_ReadU16(reader);
     for(uint32_t i = 0; i < obj_count; i++)
     {
         uint8_t obj_type = BR_ReadU8(reader);
@@ -210,7 +215,7 @@ void EmiObject_Deserialize(const char* filePath)
     
     BufferReader* reader = BR_CreateFromMemory(data, size);
     char* magic = BR_ReadString(reader, 4);
-    if(strcmp(magic, "EOBJ") != 0)
+    if(strcmp(magic, "OPAK") != 0 && strcmp(magic, "EOBJ") != 0)
     {
         MemFree(magic);
         BR_Destroy(reader);
@@ -219,14 +224,18 @@ void EmiObject_Deserialize(const char* filePath)
         return;
     }
     MemFree(magic);
-    uint8_t version = BR_ReadU8(reader);
-    if(version != 1)
+    FileVersion = BR_ReadU8(reader);
+    if(FileVersion > 2)
     {
         BR_Destroy(reader);
         MemFree(data);
-        eprintf("[EmiObject] Deserialization failed, unsupported file version: %i\n", version);
+        eprintf("[EmiObject] Deserialization failed, unsupported file version: %i\n", FileVersion);
         return;
     }
+    EObjectVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
+    ERectVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
+    EImageVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
+    ETextVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
     _internal_deserialize_recursively(reader, NULL);
     BR_Destroy(reader);
     MemFree(data);
@@ -238,7 +247,7 @@ void EmiObject_Deserialize(const char* filePath)
         // Serialize ERect properties before EObject
         target->_serialize_func(writer, target);
         _eobject_internal_serialize(writer, (EObject*)target);
-        BW_WriteU32(writer, target->Children.size);
+        BW_WriteU16(writer, target->Children.size);
         LinkedObjectList_foreach(target->Children, child)
             _internal_serialize_recursively(writer, target, child);
     }
@@ -246,17 +255,21 @@ void EmiObject_Deserialize(const char* filePath)
     void EmiObject_Serialize(EObject* target)
     {
         BufferWriter* writer = BW_CreateWithCapacity(8192);
-        BW_WriteString(writer, "EOBJ", 4);
-        BW_WriteU8(writer, 1); // Version
+        BW_WriteString(writer, "OPAK", 4); // ObjectPack
+        BW_WriteU8(writer, OPAK_VERSION); // ObjectPack Version
+        BW_WriteU8(writer, EOBJECT_VERSION);
+        BW_WriteU8(writer, ERECT_VERSION);
+        BW_WriteU8(writer, EIMAGE_VERSION);
+        BW_WriteU8(writer, ETEXT_VERSION);
         if(target == NULL)
         {
-            BW_WriteU32(writer, root_objects.size);
+            BW_WriteU16(writer, root_objects.size);
             LinkedObjectList_foreach(root_objects, object)
                 _internal_serialize_recursively(writer, NULL, object);
         } else {
-            BW_WriteU32(writer, 1);
+            BW_WriteU16(writer, 1);
             _internal_serialize_recursively(writer, NULL, target);
         }
-        BW_SaveToFile(writer, "Workspace.eobj");
+        BW_SaveToFile(writer, "Workspace.opak");
     }
 #endif

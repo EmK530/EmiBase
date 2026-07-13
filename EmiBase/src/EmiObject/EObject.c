@@ -99,13 +99,15 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
     localX += out->Size.x * (0.5f - ctx->Anchor.x);
     localY += out->Size.y * (0.5f - ctx->Anchor.y);
 
-    float s = sinf(SDEG2RAD(parent->Rotation));
-    float c = cosf(SDEG2RAD(parent->Rotation));
+    float s = parent->Rotation == 0 ? 0 : sinf(SDEG2RAD(parent->Rotation));
+    float c = parent->Rotation == 0 ? 1 : cosf(SDEG2RAD(parent->Rotation));
 
     out->Position.x = parent->Position.x + (localX * c - localY * s);
     out->Position.y = parent->Position.y + (localX * s + localY * c);
 
-    out->Rotation = parent->Rotation + ctx->Rotation;
+    out->Rotation = fmodf(parent->Rotation + ctx->Rotation, 360.0f);
+    if(out->Rotation < 0.0f)
+        out->Rotation += 360.0f;
 
     ctx->_render(ctx, out);
 }

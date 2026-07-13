@@ -24,6 +24,7 @@ const unsigned char* BW_GetData(BufferWriter* bw, size_t* outSize);
 int BW_SaveToFile(BufferWriter* bw, const char* path);
 
 void BW_WriteU8(BufferWriter* bw, uint8_t value);
+void BW_WriteU16(BufferWriter* bw, uint16_t value);
 void BW_WriteU32(BufferWriter* bw, uint32_t value);
 void BW_WriteI32(BufferWriter* bw, int32_t value);
 void BW_WriteVarU32(BufferWriter* bw, uint32_t value);

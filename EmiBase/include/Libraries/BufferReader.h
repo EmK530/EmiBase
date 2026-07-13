@@ -19,6 +19,7 @@ void BR_Destroy(BufferReader* br);
 int BR_HasError(BufferReader* br);
 
 uint8_t  BR_ReadU8(BufferReader* br);
+uint16_t BR_ReadU16(BufferReader* br);
 uint32_t BR_ReadU32(BufferReader* br);
 int32_t  BR_ReadI32(BufferReader* br);
 uint32_t BR_ReadVarU32(BufferReader* br);

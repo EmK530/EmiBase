@@ -10,6 +10,10 @@
     #include "Libraries/BufferWriter.h"
 #endif
 
+#ifndef EOBJECT_VERSION
+    #define EOBJECT_VERSION 1
+#endif
+
 #ifndef M_PI
     #define M_PI 3.14159265358979
 #endif

@@ -78,6 +78,16 @@ uint8_t BR_ReadU8(BufferReader* br)
     return br->data[br->offset++];
 }
 
+uint16_t BR_ReadU16(BufferReader* br)
+{
+    if (!BR_CanRead(br, 2)) return 0;
+
+    uint16_t v;
+    memcpy(&v, br->data + br->offset, 2);
+    br->offset += 2;
+    return v;
+}
+
 uint32_t BR_ReadU32(BufferReader* br)
 {
     if (!BR_CanRead(br, 4)) return 0;

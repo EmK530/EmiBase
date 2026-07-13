@@ -7,6 +7,10 @@
     #include "Libraries/BufferWriter.h"
 #endif
 
+#ifndef EIMAGE_VERSION
+    #define EIMAGE_VERSION 1
+#endif
+
 typedef struct EImage EImage;
 
 #ifdef EMIBASE_INTERNAL

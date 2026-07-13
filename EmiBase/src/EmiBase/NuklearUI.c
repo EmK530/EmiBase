@@ -349,6 +349,8 @@ static void Workspace_DrawProperties(EObject* object)
     nk_layout_row_dynamic(ctx, 22, 1);
     nk_property_float(ctx, "°", -360.0f, &object->Rotation, 720.0f, 0.5f, 0.5f);
     object->Rotation = fmodf(object->Rotation, 360.0f);
+    if(object->Rotation < 0.0f)
+        object->Rotation += 360.0f;
 
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Anchor", NK_TEXT_LEFT);
