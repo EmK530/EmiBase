@@ -15,68 +15,73 @@
 
 #include "raylib.h"
 
-// To configure the pak file in ContentManager, view tools/pak_builder.py
+////////////////////////////////////////
+/*          PROJECT SETTINGS          */
+////////////////////////////////////////
 
-// Project name to display in the game window.
-#ifndef PROJECT_NAME
+#ifndef PROJECT_NAME// Internal project name, referenced by the engine.
     #define PROJECT_NAME "Example Project"
 #endif
 
-#ifndef PROJECT_VER
+#ifndef PROJECT_VER// Internal project version, referenced by the engine.
     #define PROJECT_VER "v0.0.0"
 #endif
 
-#ifndef WINDOW_TITLE
+#ifndef WINDOW_TITLE// Title of the game window that gets created on boot.
     #define WINDOW_TITLE "Example Project"
 #endif
 
-// Raylib config flags that will be applied before EmiBase initializes the game window.
-#ifndef RAYLIB_FLAGS
+#ifndef RAYLIB_FLAGS// Raylib config flags that will be applied before EmiBase initializes the game window.
     #define RAYLIB_FLAGS FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE
 #endif
 
-// What scene to render on program start, needs to exist or EmiBase will fail to load.
-#ifndef STARTUP_SCENE
+#ifndef STARTUP_SCENE// What scene to load when the program starts, EmiBase closes if no scene is found.
     #define STARTUP_SCENE "Demo"
 #endif
 
-// Default font that EText objects are created with
-#ifndef DEFAULT_FONT
-    #define DEFAULT_FONT "EmiBase/ArialCE.ttf"
-#endif
-
-// Default image that EImage objects are created with
-#ifndef DEFAULT_IMAGE
-    #define DEFAULT_IMAGE "EmiBase/EImage.png"
-#endif
-
-// Enables various EmiBase tweaks to significantly speed up the performance of software rendering. Disables Post Processing.
-#ifndef SOFTWARE_OPTIMIZATIONS
-    #define SOFTWARE_OPTIMIZATIONS 0
-#endif
-
-/*
-    Compiles EmiBase with a Post Processing wrapper. Breaks software rendering and can lower framerate.
-    If disabled, all PostProcess functions will be replaced with dummy variants.
-*/
-#ifndef SUPPORTS_POSTPROCESS
-    #define SUPPORTS_POSTPROCESS 1
-#endif
-
-// I mean, this one is pretty straightforward.
-#ifndef FPS_LIMIT
+#ifndef FPS_LIMIT// FPS limit to be applied by Raylib if not already limited by VSync.
     #define FPS_LIMIT 1000
 #endif
 
-// Default window width in pixels.
-#ifndef RES_X
+#ifndef RES_X// Startup window width in pixels
     #define RES_X 1600
 #endif
 
-// Default window height in pixels.
-#ifndef RES_Y
+#ifndef RES_Y// Startup window height in pixels
     #define RES_Y 900
 #endif
+
+////////////////////////////////////////
+/*          ENGINE SETTINGS           */
+////////////////////////////////////////
+
+#ifndef SOFTWARE_OPTIMIZATIONS// Tweaks EmiBase for faster software (CPU) rendering. Disables Post Processing.
+    #define SOFTWARE_OPTIMIZATIONS 0
+#endif
+
+#ifndef DEFAULT_FONT// Default font that EText objects are created with
+    #define DEFAULT_FONT "EmiBase/ArialCE.ttf"
+#endif
+
+#ifndef DEFAULT_IMAGE// Default image that EImage objects are created with
+    #define DEFAULT_IMAGE "EmiBase/EImage.png"
+#endif
+
+#ifndef SUPPORTS_POSTPROCESS// Enables the EmiBase PostProcess module, slight overhead but allows layered shaders on the final render output.
+    #define SUPPORTS_POSTPROCESS 1
+#endif
+
+#ifndef CONTENT_NAME// The filename ContentManager tries to open to load game assets.
+    #define CONTENT_NAME "content.epak"
+#endif
+
+#ifndef CONTENT_KEY// Controls the key that ContentManager tries to read encrypted game packages with.
+    #define CONTENT_KEY 0xC417A251
+#endif
+
+////////////////////////////////////////
+/*           MISC SETTINGS            */
+////////////////////////////////////////
 
 // Removes all logging made by function calls to eprintf, strings should end up discarded by the compiler.
 #ifndef NO_LOGGING
@@ -86,15 +91,6 @@
         #define NO_LOGGING 0
     #endif
 #endif
-
-/*
-    Determines the filename for ContentManager to load.
-    You should probably update pak_builder.py if you change this.
-*/
-#define CONTENT_NAME "content.epak"
-
-// The key used for reading encrypted content files, must match the key in the Python script but can be ignored if encryption is off.
-#define CONTENT_KEY 0xC417A251
 
 /* DO NOT EDIT BEYOND THIS POINT */
 
