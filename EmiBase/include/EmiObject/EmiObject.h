@@ -17,12 +17,16 @@
     #define EOBJ_MAGIC 0x4A424F45
 #endif
 
-extern LinkedObjectList root_objects;
 extern bool EmiObject_AutoDraw;
-extern bool EImage_IsDefaultValid;
-extern Texture EImage_DefaultTexture;
 
-int EmiObject_Init();
+#ifdef EMIBASE_INTERNAL
+    extern LinkedObjectList root_objects;
+    extern bool EImage_IsDefaultValid;
+    extern Texture EImage_DefaultTexture;
+
+    int EmiObject_Init();
+#endif
+
 void EmiObject_Draw(int screenWidth, int screenHeight);
 EObject* EmiObject_FindN(const char* searchPath, size_t len, EObject* target);
 EObject* EmiObject_Find(const char* searchPath, EObject* target);

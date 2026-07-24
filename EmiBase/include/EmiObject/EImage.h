@@ -31,9 +31,9 @@ typedef struct EImage EImage;
     {
         EOBJECT_BASE_TYPES
     #ifndef RELEASE
-        uint8_t _reservedi[sizeof(Texture2D) + sizeof(bool) + sizeof(char*)];
+        uint8_t _reservedi[sizeof(Texture2D) + sizeof(uint8_t) + sizeof(char*)];
     #else
-        uint8_t _reservedi[sizeof(Texture2D) + sizeof(bool)];
+        uint8_t _reservedi[sizeof(Texture2D) + sizeof(uint8_t)];
     #endif
 
         Color BackgroundColor; // Background color

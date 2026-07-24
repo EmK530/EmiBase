@@ -40,13 +40,17 @@ void EImage_SetTexture(EImage* image, const char* texturePath)
     size_t dataSize = 0;
     if(texturePath != NULL)
     {
-        matches = strcmp(texturePath, DEFAULT_IMAGE) == 0;
+        size_t pathLen = strlen(texturePath);
+        matches = pathLen == 0 || strcmp(texturePath, DEFAULT_IMAGE) == 0;
         if(!matches)
-            dataSize = strlen(texturePath) + 1;
+            dataSize = pathLen + 1;
     }
 #ifndef RELEASE
     if(image->_loadedTexturePath != NULL)
+    {
         MemFree(image->_loadedTexturePath);
+        image->_loadedTexturePath = NULL;
+    }
     if(!matches)
     {
         image->_loadedTexturePath = MemAlloc(dataSize);
@@ -69,6 +73,8 @@ void EImage_SetTexture(EImage* image, const char* texturePath)
     {
         image->_loadedTexture = loaded;
         image->textureState = true;
+    } else {
+        image->textureState = false;
     }
 }
 

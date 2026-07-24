@@ -8,7 +8,6 @@
 #include "EmiBase/PostProcess.h"
 #include "EmiBase/SceneUtils.h"
 #include "EmiBase/TextureManager.h"
-#include "EmiBase/ProtectedString.h"
 
 #include "EmiBase/easings.h"
 

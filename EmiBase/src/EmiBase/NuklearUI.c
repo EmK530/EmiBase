@@ -23,7 +23,7 @@ bool nk_workLate   = 0;
 bool nk_postProcess = 0;
 bool nk_overlay    = 0;
 
-bool _nk_window_workspace = 0;
+bool _nk_window_workspace = 1;
 
 static struct nk_image nk_icon_erect;
 static struct nk_image nk_icon_eimage;
