@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#define CONTEXT_EMIMAIN
 #define EMIBASE_INTERNAL
 
 #include "EmiBase.h"
@@ -141,9 +142,10 @@ static char message[128];
 
 void AllocationError(uint32_t byteAmount)
 {
-    snprintf(message, 128, "Ran out of memory or heap is fragmented.\n\nEmiBase failed to allocate %i bytes for an EText object.", byteAmount);
+    snprintf(message, 128, "Ran out of memory or heap is fragmented.\n\nEmiBase failed to allocate %i bytes.", byteAmount);
     WinMessageBox("Fatal error!", message, MB_TOPMOST | MB_ICONERROR);
     CloseWindow();
+    EmiBase_Cleanup();
     WinExitProcess(1);
 }
 
@@ -167,9 +169,7 @@ void EText_SetTextN(EText* target, const char* text, size_t len)
         }
     } else {
         uint32_t bufSizeNew = next_pow2(len);
-        const char* newBuf = MemAlloc(bufSizeNew);
-        if(newBuf == NULL)
-            AllocationError(bufSizeNew);
+        const char* newBuf = emalloc_strict(bufSizeNew);
         target->Text = newBuf;
         target->_TextBufferLen = bufSizeNew;
     }
@@ -208,9 +208,8 @@ void EText_SetFont(EText* target, const char* fontPath)
 #ifndef RELEASE
     if(target->_FontPath != NULL)
         MemFree((void*)target->_FontPath);
-    target->_FontPath = MemAlloc(dataSize);
-    if(target->_FontPath != NULL)
-        memcpy((void*)target->_FontPath, fontPath, dataSize);
+    target->_FontPath = emalloc_strict(dataSize);
+    memcpy((void*)target->_FontPath, fontPath, dataSize);
 #endif
     if(target->_isFontValid)
     {
@@ -247,12 +246,7 @@ void EText_SetFontSize(EText* target, float fontSize)
 */
 EText* EText_Create(EObject* parent)
 {
-    EText* text = (EText*)MemAlloc(sizeof(EText));
-    if(!text)
-    {
-        eprintf("Out of memory allocating EText\n");
-        return NULL;
-    }
+    EText* text = (EText*)ecalloc_strict(1, sizeof(EText));
 
     text->innerType = EObjectType_EText;
     _eobject_internal_initialize((EObject*)text);

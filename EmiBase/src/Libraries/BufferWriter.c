@@ -48,10 +48,7 @@ BufferWriter* BW_CreateWithCapacity(size_t capacity)
     {
         bw->data = (unsigned char*)MemAlloc((int)capacity);
         if (!bw->data)
-        {
-            MemFree(bw);
             return NULL;
-        }
         bw->size = capacity;
     }
     return bw;

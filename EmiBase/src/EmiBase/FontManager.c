@@ -54,7 +54,7 @@ static FontAsset* Find(const char* key)
 Font* FontManager_GetFont(const char* path, int size)
 {
     int size2 = strlen(path) + strlen(staticPath) + 1;
-    char* finalPath = MemAlloc(size2);
+    char* finalPath = emalloc_strict(size2);
     snprintf(finalPath, size2, "%s%s", staticPath, path);
 
     char key[512];

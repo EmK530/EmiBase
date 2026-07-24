@@ -8,12 +8,9 @@
 
 typedef struct
 {
-    char *path;
-
+    uint64_t pathHash;
     uint32_t dataOffset;
     uint32_t size;
-
-    uint32_t pathCRC;
     uint32_t dataCRC;
 } ContentEntry;
 

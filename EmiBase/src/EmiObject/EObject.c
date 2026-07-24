@@ -4,10 +4,7 @@
 
 #define EMIBASE_INTERNAL
 
-#include "EmiObject/EmiObject.h"
-#include "EmiObject/EObject.h"
-#include "EmiObject/Types.h"
-#include "EmiObject/LinkedObjectList.h"
+#include "EmiBase.h"
 
 void EObject_SetParent(void* object, EObject* parent)
 {
@@ -66,7 +63,7 @@ void EObject_SetName(void* object, const char* name)
         ctx->Name = NULL;
         return;
     }
-    char* newname = MemAlloc(len + 1);
+    char* newname = emalloc_strict(len + 1);
     if(!newname)
         return;
     strncpy(newname, name, len);

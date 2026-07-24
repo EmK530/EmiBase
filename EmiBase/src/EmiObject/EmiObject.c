@@ -64,7 +64,7 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
 
 EObject* EmiObject_FindN(const char* searchPath, size_t len, EObject* target)
 {
-    char* search = (char*)MemAlloc(len+1);
+    char* search = (char*)emalloc_strict(len+1);
     memcpy(search, searchPath, len); search[len] = '\0';
     char* ptr1 = search;
     char* ptr2 = search;

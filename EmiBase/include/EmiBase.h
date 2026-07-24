@@ -7,7 +7,7 @@
 #include "EmiBase/FontManager.h"
 #include "EmiBase/PostProcess.h"
 #include "EmiBase/SceneUtils.h"
-#include "EmiBase/TextureManager.h"
+//#include "EmiBase/TextureManager.h"
 
 #include "EmiBase/easings.h"
 
@@ -59,16 +59,12 @@
     #define SOFTWARE_OPTIMIZATIONS 0
 #endif
 
-#ifndef DEFAULT_FONT// Default font that EText objects are created with
-    #define DEFAULT_FONT "EmiBase/ArialCE.ttf"
-#endif
-
-#ifndef DEFAULT_IMAGE// Default image that EImage objects are created with
-    #define DEFAULT_IMAGE "EmiBase/EImage.png"
-#endif
-
 #ifndef SUPPORTS_POSTPROCESS// Enables the EmiBase PostProcess module, slight overhead but allows layered shaders on the final render output.
     #define SUPPORTS_POSTPROCESS 1
+#endif
+
+#ifndef CONTENT_EXTERNAL// If an asset cannot be found in the game pack, it will search the file system.
+    #define CONTENT_EXTERNAL 0
 #endif
 
 #ifndef CONTENT_NAME// The filename ContentManager tries to open to load game assets.
@@ -77,6 +73,14 @@
 
 #ifndef CONTENT_KEY// Controls the key that ContentManager tries to read encrypted game packages with.
     #define CONTENT_KEY 0xC417A251
+#endif
+
+#ifndef DEFAULT_FONT// Default font that EText objects are created with
+    #define DEFAULT_FONT "EmiBase/ArialCE.ttf"
+#endif
+
+#ifndef DEFAULT_IMAGE// Default image that EImage objects are created with
+    #define DEFAULT_IMAGE "EmiBase/EImage.png"
 #endif
 
 ////////////////////////////////////////
@@ -127,3 +131,12 @@ void EmiBase_Attach(); // Return rendering control back to EmiBase, needs to be 
 #else
     #define eprintf(...) ((void)0)
 #endif
+
+// Raylib RL_MALLOC wrapper with a guard against allocation errors which will display an error message and close the game.
+void* emalloc_strict(size_t bytes);
+
+// Raylib RL_CALLOC wrapper with a guard against allocation errors which will display an error message and close the game.
+void* ecalloc_strict(size_t num, size_t bytes);
+
+#define emalloc RL_MALLOC
+#define ecalloc RL_CALLOC

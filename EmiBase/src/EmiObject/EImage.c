@@ -53,9 +53,8 @@ void EImage_SetTexture(EImage* image, const char* texturePath)
     }
     if(!matches)
     {
-        image->_loadedTexturePath = MemAlloc(dataSize);
-        if(image->_loadedTexturePath != NULL)
-            memcpy(image->_loadedTexturePath, texturePath, dataSize);
+        image->_loadedTexturePath = emalloc_strict(dataSize);
+        memcpy(image->_loadedTexturePath, texturePath, dataSize);
     }
 #endif
     if(image->textureState == 1)
@@ -113,12 +112,7 @@ extern void _eobject_internal_initialize(EObject* object);
 */
 EImage* EImage_Create(EObject* parent)
 {
-    EImage* image = (EImage*)MemAlloc(sizeof(EImage));
-    if(!image)
-    {
-        eprintf("Out of memory allocating EImage\n");
-        return NULL;
-    }
+    EImage* image = (EImage*)ecalloc_strict(1, sizeof(EImage));
 
     image->innerType = EObjectType_EImage;
     _eobject_internal_initialize((EObject*)image);

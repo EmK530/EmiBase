@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define EMIBASE_INTERNAL
 
@@ -383,3 +384,35 @@ void EmiBase_Cleanup()
         va_end(args);
     }
 #endif
+
+static char message[128];
+void RaiseAllocationError(size_t bytes)
+{
+    snprintf(message, 128, "Ran out of memory or heap is fragmented.\n\nEmiBase failed to allocate %i bytes.", bytes);
+    WinMessageBox("Fatal error!", message, MB_TOPMOST | MB_ICONERROR);
+    CloseWindow();
+    EmiBase_Cleanup();
+    WinExitProcess(1);
+}
+
+void* emalloc_strict(size_t bytes)
+{
+    void* alloc = RL_MALLOC(bytes);
+    if(!alloc)
+    {
+        RaiseAllocationError(bytes);
+        return NULL;
+    }
+    return alloc;
+}
+
+void* ecalloc_strict(size_t num, size_t bytes)
+{
+    void* alloc = RL_CALLOC(num, bytes);
+    if(!alloc)
+    {
+        RaiseAllocationError(bytes);
+        return NULL;
+    }
+    return alloc;
+}
