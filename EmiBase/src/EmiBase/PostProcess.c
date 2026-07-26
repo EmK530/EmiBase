@@ -20,7 +20,7 @@
         return NULL;
     }
 
-    static void ApplyPass(ShaderSlot *s, RenderTexture2D *src, float time, int w, int h)
+    static void ApplyPass(ShaderSlot *s, RenderTexture2D *src, float time, int w, int h, bool last)
     {
         Vector2 res = { w, h };
         if(s->timeLoc != -1) SetShaderValue(*s->shader, s->timeLoc, &time, SHADER_UNIFORM_FLOAT);
@@ -28,12 +28,20 @@
         if(s->frameLoc != -1) SetShaderValue(*s->shader, s->frameLoc,  &frame,  SHADER_UNIFORM_INT);
 
         BeginShaderMode(*s->shader);
-            DrawTextureRec(
-                src->texture,
+        if(!last) {
+            DrawTextureRec(src->texture,
                 (Rectangle){ 0, 0, src->texture.width, -src->texture.height },
-                (Vector2){ 0, 0 },
-                WHITE
-            );
+                (Vector2){ 0, 0 }, WHITE);
+        } else {
+            float screenW = GetScreenWidth(); float screenH = GetScreenHeight();
+            float w = src->texture.width; float h = src->texture.height;
+            float scale = fminf(screenW / (float)w, screenH / (float)h);
+            float drawW = w * scale; float drawH = h * scale;
+            DrawTexturePro(src->texture,
+                (Rectangle){ 0, 0, src->texture.width, -src->texture.height },
+                (Rectangle){ (screenW - drawW) * 0.5f, (screenH - drawH) * 0.5f, drawW, drawH },
+                (Vector2){ 0, 0 }, 0.0f, WHITE);
+        }
         EndShaderMode();
     }
 
@@ -110,12 +118,14 @@
         if (!list || list->count == 0) {
             BeginDrawing();
                 rlClearScreenBuffers();
-                DrawTextureRec(
-                    sceneTarget->texture,
+                float screenW = GetScreenWidth(); float screenH = GetScreenHeight();
+                float w = sceneTarget->texture.width; float h = sceneTarget->texture.height;
+                float scale = fminf(screenW / (float)w, screenH / (float)h);
+                float drawW = w * scale; float drawH = h * scale;
+                DrawTexturePro(sceneTarget->texture,
                     (Rectangle){ 0, 0, sceneTarget->texture.width, -sceneTarget->texture.height },
-                    (Vector2){ 0, 0 },
-                    WHITE
-                );
+                    (Rectangle){ (screenW - drawW) * 0.5f, (screenH - drawH) * 0.5f, drawW, drawH },
+                    (Vector2){ 0, 0 }, 0.0f, WHITE);
             if (overlay) overlay();
             EndDrawing();
             return;
@@ -138,15 +148,15 @@
                 bool isLast = (i == passCount - 1);
 
                 if (isLast) {
-                    if(passCount > 1) rlDisableFramebuffer();
+                    if(passCount > 1) EndTextureMode();
                     BeginDrawing();
                     rlClearScreenBuffers();
-                    ApplyPass(passes[i], src, time, screenWidth, screenHeight);
+                    ApplyPass(passes[i], src, time, screenWidth, screenHeight, isLast);
                 } else {
                     RenderTexture2D *target = (drawToMainTarget ? sceneTarget : &pingpong);
-                    rlEnableFramebuffer(target->id);
-                        rlClearScreenBuffers();
-                        ApplyPass(passes[i], src, time, screenWidth, screenHeight);
+                    BeginTextureMode(*target);
+                    rlClearScreenBuffers();
+                    ApplyPass(passes[i], src, time, screenWidth, screenHeight, isLast);
                     src = target;
                     drawToMainTarget = !drawToMainTarget;
                 }
@@ -154,12 +164,14 @@
         } else {
             BeginDrawing();
             rlClearScreenBuffers();
-            DrawTextureRec(
-                src->texture,
+            float screenW = GetScreenWidth(); float screenH = GetScreenHeight();
+            float w = src->texture.width; float h = src->texture.height;
+            float scale = fminf(screenW / (float)w, screenH / (float)h);
+            float drawW = w * scale; float drawH = h * scale;
+            DrawTexturePro(src->texture,
                 (Rectangle){ 0, 0, src->texture.width, -src->texture.height },
-                (Vector2){ 0, 0 },
-                WHITE
-            );
+                (Rectangle){ (screenW - drawW) * 0.5f, (screenH - drawH) * 0.5f, drawW, drawH },
+                (Vector2){ 0, 0 }, 0.0f, WHITE);
         }
 
         if (overlay) overlay();

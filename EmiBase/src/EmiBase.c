@@ -13,10 +13,15 @@
 #include "EmiBase/CrashHandler.h"
 #include "EmiBase/NuklearUI.h" // Don't worry, it's not part of Release.
 
-#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
-RenderTexture2D target;
-#endif
-bool detached = false;
+static bool detached = false;
+static bool initialized = false;
+
+static int fixedScreenWidth = -1;
+static int fixedScreenHeight = -1;
+static int queuedResizeX = -1;
+static int queuedResizeY = -1;
+static bool isCustomRenderTarget = false;
+static RenderTexture2D target;
 
 extern int Game_PreInit();
 extern int Game_Initialize();
@@ -36,18 +41,24 @@ int EmiBase_Init()
         WinMessageBox("Fatal error!", "Failed to create a game window.", MB_TOPMOST | MB_ICONERROR);
         return 2;
     }
+
+    int targetWidth = fixedScreenWidth == -1 ? RES_X : fixedScreenWidth;
+    int targetHeight = fixedScreenHeight == -1 ? RES_Y : fixedScreenHeight;
+
     if(!EmiObject_Init()) return 1;
-    if(!PostProcess_Init(RES_X, RES_Y)) return 1;
+    if(!PostProcess_Init(targetWidth, targetHeight)) return 1;
     if(!AudioManager_Init()) return 1;
 
-#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
-    target = LoadRenderTexture(RES_X, RES_Y);
-    if(!IsRenderTextureValid(target))
+    if(fixedScreenWidth != -1 || (SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0))
     {
-        eprintf("[EmiBase] Could not create a RenderTexture target for PostProcess.\n");
-        return 1;
+        target = LoadRenderTexture(targetWidth, targetHeight);
+        isCustomRenderTarget = true;
+        if(!IsRenderTextureValid(target))
+        {
+            eprintf("[EmiBase] Could not create a RenderTexture target.\n");
+            return 1;
+        }
     }
-#endif
 
     SetExitKey(KEY_NULL);
     SetTargetFPS(FPS_LIMIT);
@@ -75,7 +86,32 @@ int EmiBase_Init()
 
     _crashhandler_internal_sendstatus(0);
 
+    initialized = true;
+
     return 0;
+}
+
+int EmiBase_GetScreenWidth() { return fixedScreenWidth == -1 ? GetScreenWidth() : fixedScreenWidth; }
+int EmiBase_GetScreenHeight() { return fixedScreenHeight == -1 ? GetScreenHeight() : fixedScreenHeight; }
+
+void EmiBase_SetRenderResolution(int width, int height)
+{
+    if(width < 1 || height < 1)
+        return;
+    if(!initialized)
+    {
+        fixedScreenWidth = width;
+        fixedScreenHeight = height;
+        return;
+    }
+    queuedResizeX = width;
+    queuedResizeY = height;
+}
+
+void EmiBase_UnsetRenderResolution()
+{
+    queuedResizeX = 0;
+    queuedResizeY = 0;
 }
 
 void EmiBase_ProcessInput()
@@ -109,34 +145,31 @@ void EmiBase_ProcessInput()
     }
 #endif
 
-static bool firstrun = true;
 void EmiBase_BeginDrawing()
 {
     int screenWidth = GetScreenWidth();
     int screenHeight = GetScreenHeight();
-#if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
-    if (IsWindowResized())
+    if(isCustomRenderTarget)
     {
-        PostProcess_Resize(screenWidth, screenHeight);
-        UnloadRenderTexture(target);
-        target = LoadRenderTexture(screenWidth, screenHeight);
-        BeginTextureMode(target);
-    } else if(firstrun) {
-        firstrun = false;
-        BeginTextureMode(target);
+        if (fixedScreenWidth == -1 && IsWindowResized())
+        {
+            PostProcess_Resize(screenWidth, screenHeight);
+            UnloadRenderTexture(target);
+            target = LoadRenderTexture(screenWidth, screenHeight);
+            BeginTextureMode(target);
+        } else {
+            BeginTextureMode(target);
+            rlClearScreenBuffers();
+        }
     } else {
-        rlEnableFramebuffer(target.id);
-        rlClearScreenBuffers();
+        BeginDrawing();
+    #if SOFTWARE_OPTIMIZATIONS == 1
+    if(shouldClear)
+        ClearBackgroundRLSW();
+    #else
+        DrawRectangle(0, 0, screenWidth, screenHeight, BLACK); // This performs better than ClearBackground in software???
+    #endif
     }
-#else
-    BeginDrawing();
-#if SOFTWARE_OPTIMIZATIONS == 1
-if(shouldClear)
-    ClearBackgroundRLSW();
-#else
-    DrawRectangle(0, 0, screenWidth, screenHeight, BLACK); // This performs better than ClearBackground in software???
-#endif
-#endif
 }
 
 static void _emibase_restore_framebuffer(unsigned int fbo, int width, int height)
@@ -240,29 +273,75 @@ void EmiBase_Attach()
     void EmiBase_EndDrawing(void (*overlay)())
     {
         AudioManager_Update();
-    #if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
-            int screenWidth = GetScreenWidth();
-            int screenHeight = GetScreenHeight();
+        if(isCustomRenderTarget) {
+            int screenWidth = EmiBase_GetScreenWidth();
+            int screenHeight = EmiBase_GetScreenHeight();
             rlDrawRenderBatchActive();
-            rlDisableFramebuffer();
-            overlayRemember = overlay;
-            PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, doubleDraw);
-    #else
-            if(nk_overlay == 0 && overlay != NULL)
-                overlay();
-            _crashhandler_internal_sendstatus(4);
-            NuklearUI_Draw();
-            _crashhandler_internal_sendstatus(0);
-            EndDrawing();
-    #endif
+            EndTextureMode();
+            #if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
+                overlayRemember = overlay;
+                PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, doubleDraw);
+                goto shouldResize;
+            #else
+                BeginDrawing();
+                rlClearScreenBuffers();
+                float screenW = GetScreenWidth(); float screenH = GetScreenHeight();
+                float w = target.texture.width; float h = target.texture.height;
+                float scale = fminf(screenW / (float)w, screenH / (float)h);
+                float drawW = w * scale; float drawH = h * scale;
+                DrawTexturePro(target.texture,
+                    (Rectangle){ 0, 0, target.texture.width, -target.texture.height },
+                    (Rectangle){ (screenW - drawW) * 0.5f, (screenH - drawH) * 0.5f, drawW, drawH },
+                    (Vector2){ 0, 0 }, 0.0f, WHITE);
+            #endif
+        }
+        if(nk_overlay == 0 && overlay != NULL)
+            overlay();
+        _crashhandler_internal_sendstatus(4);
+        NuklearUI_Draw();
+        _crashhandler_internal_sendstatus(0);
+        EndDrawing();
+
+        shouldResize:
+        if(queuedResizeX != 1 && queuedResizeY != -1)
+        {
+            if(queuedResizeX == 0)
+            {
+                if(fixedScreenWidth == -1)
+                    return;
+                if(isCustomRenderTarget) {
+                    UnloadRenderTexture(target);
+                    if(SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0)
+                    {
+                        PostProcess_Resize(GetScreenWidth(), GetScreenHeight());
+                        target = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+                        fixedScreenWidth = -1;
+                        fixedScreenHeight = -1;
+                    } else {
+                        isCustomRenderTarget = false;
+                    }
+                }
+            } else if(queuedResizeX != fixedScreenWidth && queuedResizeY != fixedScreenHeight) {
+                if(isCustomRenderTarget)
+                    UnloadRenderTexture(target);
+                target = LoadRenderTexture(queuedResizeX, queuedResizeY);
+                if(SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0)
+                    PostProcess_Resize(queuedResizeX, queuedResizeY);
+                isCustomRenderTarget = true;
+                fixedScreenWidth = queuedResizeX;
+                fixedScreenHeight = queuedResizeY;
+            }
+            queuedResizeX = -1;
+            queuedResizeY = -1;
+        }
     }
 #else
     void EmiBase_EndDrawing(void (*overlay)())
     {
         AudioManager_Update();
     #if SUPPORTS_POSTPROCESS == 1 && SOFTWARE_OPTIMIZATIONS == 0
-            int screenWidth = GetScreenWidth();
-            int screenHeight = GetScreenHeight();
+            int screenWidth = EmiBase_GetScreenWidth();
+            int screenHeight = EmiBase_GetScreenHeight();
             rlDrawRenderBatchActive();
             rlDisableFramebuffer();
             PostProcess_Apply(&target, TopScene(), GetTime(), screenWidth, screenHeight, overlay);
@@ -292,8 +371,8 @@ void _emibase_internal_replacescene(Scene* target)
 void EmiBase_StepScenes()
 {
     float deltaTime = GetFrameTime();
-    int screenWidth = GetScreenWidth();
-    int screenHeight = GetScreenHeight();
+    int screenWidth = EmiBase_GetScreenWidth();
+    int screenHeight = EmiBase_GetScreenHeight();
 
     if(nk_workEarly == 0)
     {
@@ -390,8 +469,6 @@ void RaiseAllocationError(size_t bytes)
 {
     snprintf(message, 128, "Ran out of memory or heap is fragmented.\n\nEmiBase failed to allocate %i bytes.", bytes);
     WinMessageBox("Fatal error!", message, MB_TOPMOST | MB_ICONERROR);
-    CloseWindow();
-    EmiBase_Cleanup();
     WinExitProcess(1);
 }
 

@@ -211,7 +211,7 @@ int ContentManager_Init(const char *pakPath)
         fseek(gPakFile, fileSize, SEEK_CUR);
     }
 
-    eprintf("[ContentManager] Loaded %i pak entries\n", gEntries->size);
+    eprintf("[ContentManager] Loaded %i pak entries\n", gEntriesCount);
 
     return 1;
 }

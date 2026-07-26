@@ -343,10 +343,10 @@ static void Workspace_DrawProperties(EObject* object)
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Size", NK_TEXT_LEFT);
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "X.Scale",  0.0f, &object->Size.X.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_float(ctx, "X.Scale",  -1.0f, &object->Size.X.Scale,  FLT_MAX, 0.01f, 0.005f);
     nk_property_int  (ctx, "X.Offset", 0,    (int*)&object->Size.X.Offset, INT_MAX, 1, 1);
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "Y.Scale",  0.0f, &object->Size.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_float(ctx, "Y.Scale",  -1.0f, &object->Size.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
     nk_property_int  (ctx, "Y.Offset", 0,    (int*)&object->Size.Y.Offset, INT_MAX, 1, 1);
 
     nk_layout_row_dynamic(ctx, 18, 1);
