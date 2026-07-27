@@ -63,8 +63,8 @@
     #define SUPPORTS_POSTPROCESS 1
 #endif
 
-#ifndef CONTENT_EXTERNAL// If an asset cannot be found in the game pack, it will search the file system.
-    #define CONTENT_EXTERNAL 0
+#ifndef AUDIO_MAX_CHANNELS// How many audio channels are accessible for use in AudioManager
+    #define AUDIO_MAX_CHANNELS 32
 #endif
 
 #ifndef CONTENT_NAME// The filename ContentManager tries to open to load game assets.

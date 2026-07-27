@@ -151,7 +151,17 @@ static void Workspace_DrawHierarchyNode(EObject* object, int depth)
     struct nk_rect bounds = nk_window_get_content_region(ctx);
     nk_layout_row_push(ctx, bounds.w - (depth * 12) - 18);
 
-    if (nk_parent_picking && object == nk_selected_object)
+    bool is_child_object = false;
+    EObject* target = object->Parent;
+    while(target) {
+        if(target == nk_selected_object) {
+            is_child_object = true;
+            break;
+        }
+        target = target->Parent;
+    }
+
+    if (nk_parent_picking && (object == nk_selected_object || is_child_object))
     {
         nk_label(ctx, object->Name ? object->Name : "(null)", NK_TEXT_LEFT);
     }
@@ -577,8 +587,10 @@ static void Workspace_DrawWorkspace()
             if (nk_parent_picking && nk_input_is_key_pressed(&ctx->input, NK_KEY_TEXT_RESET_MODE))
                 nk_parent_picking = false;
 
+            ctx->style.text.padding    = nk_vec2(2, 0);
             LinkedObjectList_foreach(root_objects, object)
                 Workspace_DrawHierarchyNode(object, 0);
+            ctx->style.text.padding    = nk_vec2(0, 0);
 
             struct nk_rect hier_bounds = nk_window_get_bounds(ctx);
             if (nk_contextual_begin(ctx, 0, nk_vec2(120, 150), hier_bounds))

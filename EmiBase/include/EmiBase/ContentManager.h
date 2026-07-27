@@ -15,9 +15,7 @@ typedef struct
 int ContentManager_Init(const char *pakPath);
 void ContentManager_Dispose();
 
-unsigned char *ContentManager_LoadFile(
-    const char *path,
-    size_t *size);
+unsigned char* ContentManager_LoadFile(const char *path, size_t *size);
 
 Texture2D ContentManager_LoadTexture(const char *path);
 
