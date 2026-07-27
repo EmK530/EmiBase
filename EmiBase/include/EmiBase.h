@@ -122,7 +122,7 @@ void EmiBase_UnsetRenderResolution();
 #define EMIBASE_VER "v1.1.0"
 
 #ifndef GIT_HASH
-    #define GIT_HASH "00000000"
+    #define GIT_HASH "unknown"
 #endif
 #ifndef GIT_DIRTY
     #define GIT_DIRTY ""
