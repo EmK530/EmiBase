@@ -7,7 +7,7 @@
 #include "EmiBase/FontManager.h"
 #include "EmiBase/PostProcess.h"
 #include "EmiBase/SceneUtils.h"
-//#include "EmiBase/TextureManager.h"
+#include "EmiBase/TextureManager.h"
 
 #include "EmiBase/easings.h"
 
