@@ -48,10 +48,7 @@ BufferWriter* BW_CreateWithCapacity(size_t capacity)
     {
         bw->data = (unsigned char*)MemAlloc((int)capacity);
         if (!bw->data)
-        {
-            MemFree(bw);
             return NULL;
-        }
         bw->size = capacity;
     }
     return bw;
@@ -106,6 +103,13 @@ void BW_WriteU8(BufferWriter* bw, uint8_t value)
 {
     if (!BW_EnsureCapacity(bw, 1)) return;
     bw->data[bw->offset++] = value;
+}
+
+void BW_WriteU16(BufferWriter* bw, uint16_t value)
+{
+    if (!BW_EnsureCapacity(bw, 2)) return;
+    memcpy(bw->data + bw->offset, &value, 2);
+    bw->offset += 2;
 }
 
 void BW_WriteU32(BufferWriter* bw, uint32_t value)

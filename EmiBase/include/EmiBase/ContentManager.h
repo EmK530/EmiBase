@@ -4,25 +4,18 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "Libraries/LinkedList.h"
-
 typedef struct
 {
-    char *path;
-
+    uint64_t pathHash;
     uint32_t dataOffset;
     uint32_t size;
-
-    uint32_t pathCRC;
     uint32_t dataCRC;
 } ContentEntry;
 
 int ContentManager_Init(const char *pakPath);
 void ContentManager_Dispose();
 
-unsigned char *ContentManager_LoadFile(
-    const char *path,
-    size_t *size);
+unsigned char* ContentManager_LoadFile(const char *path, size_t *size);
 
 Texture2D ContentManager_LoadTexture(const char *path);
 

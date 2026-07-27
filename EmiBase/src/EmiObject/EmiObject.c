@@ -9,10 +9,16 @@
 #endif
 
 LinkedObjectList root_objects;
+bool EImage_IsDefaultValid = false;
+Texture2D EImage_DefaultTexture;
 
 int EmiObject_Init()
 {
     root_objects = LinkedObjectList_create();
+    EImage_DefaultTexture = ContentManager_LoadTexture(DEFAULT_IMAGE);
+    EImage_IsDefaultValid = IsTextureValid(EImage_DefaultTexture);
+    if(!EImage_IsDefaultValid)
+        eprintf("[EmiObject] WARNING: The path '" DEFAULT_IMAGE "' for DEFAULT_IMAGE could not be loaded.");
     eprintf("[EmiObject] Ready!\n");
     return 1;
 }
@@ -58,7 +64,7 @@ void EmiObject_Draw(int screenWidth, int screenHeight)
 
 EObject* EmiObject_FindN(const char* searchPath, size_t len, EObject* target)
 {
-    char* search = (char*)MemAlloc(len+1);
+    char* search = (char*)emalloc_strict(len+1);
     memcpy(search, searchPath, len); search[len] = '\0';
     char* ptr1 = search;
     char* ptr2 = search;
@@ -129,9 +135,14 @@ void EmiObject_Wipe()
     NuklearUI_ResetHighlight();
 }
 
+static uint8_t FileVersion = 1;
+static uint8_t EObjectVersion = 1;
+static uint8_t ERectVersion = 1;
+static uint8_t EImageVersion = 1;
+static uint8_t ETextVersion = 1;
 void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
 {
-    uint32_t obj_count = BR_ReadU32(reader);
+    uint32_t obj_count = FileVersion == 1 ? BR_ReadU32(reader) : BR_ReadU16(reader);
     for(uint32_t i = 0; i < obj_count; i++)
     {
         uint8_t obj_type = BR_ReadU8(reader);
@@ -150,9 +161,10 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
             {
                 EImage* image = EImage_Create(parent);
                 uint8_t pathLen = BR_ReadU8(reader);
-                char* path = BR_ReadString(reader, pathLen);
+                char* path = pathLen == 0 ? NULL : BR_ReadString(reader, pathLen);
                 EImage_SetTexture(image, path);
-                MemFree(path);
+                if(path != NULL)
+                    MemFree(path);
                 image->BackgroundColor = Color32_deserialize(reader);
                 image->ImageColor = Color32_deserialize(reader);
                 obj = (EObject*)image;
@@ -209,24 +221,26 @@ void EmiObject_Deserialize(const char* filePath)
     }
     
     BufferReader* reader = BR_CreateFromMemory(data, size);
-    char* magic = BR_ReadString(reader, 4);
-    if(strcmp(magic, "EOBJ") != 0)
+    uint32_t magic = BR_ReadU32(reader);
+    if(magic != OPAK_MAGIC && magic != EOBJ_MAGIC)
     {
-        MemFree(magic);
         BR_Destroy(reader);
         MemFree(data);
         eprintf("[EmiObject] Deserialization failed, invalid header magic.\n");
         return;
     }
-    MemFree(magic);
-    uint8_t version = BR_ReadU8(reader);
-    if(version != 1)
+    FileVersion = BR_ReadU8(reader);
+    if(FileVersion > 2)
     {
         BR_Destroy(reader);
         MemFree(data);
-        eprintf("[EmiObject] Deserialization failed, unsupported file version: %i\n", version);
+        eprintf("[EmiObject] Deserialization failed, unsupported file version: %i\n", FileVersion);
         return;
     }
+    EObjectVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
+    ERectVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
+    EImageVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
+    ETextVersion = FileVersion == 1 ? 1 : BR_ReadU8(reader);
     _internal_deserialize_recursively(reader, NULL);
     BR_Destroy(reader);
     MemFree(data);
@@ -238,7 +252,7 @@ void EmiObject_Deserialize(const char* filePath)
         // Serialize ERect properties before EObject
         target->_serialize_func(writer, target);
         _eobject_internal_serialize(writer, (EObject*)target);
-        BW_WriteU32(writer, target->Children.size);
+        BW_WriteU16(writer, target->Children.size);
         LinkedObjectList_foreach(target->Children, child)
             _internal_serialize_recursively(writer, target, child);
     }
@@ -246,17 +260,21 @@ void EmiObject_Deserialize(const char* filePath)
     void EmiObject_Serialize(EObject* target)
     {
         BufferWriter* writer = BW_CreateWithCapacity(8192);
-        BW_WriteString(writer, "EOBJ", 4);
-        BW_WriteU8(writer, 1); // Version
+        BW_WriteString(writer, "OPAK", 4); // ObjectPack
+        BW_WriteU8(writer, OPAK_VERSION); // ObjectPack Version
+        BW_WriteU8(writer, EOBJECT_VERSION);
+        BW_WriteU8(writer, ERECT_VERSION);
+        BW_WriteU8(writer, EIMAGE_VERSION);
+        BW_WriteU8(writer, ETEXT_VERSION);
         if(target == NULL)
         {
-            BW_WriteU32(writer, root_objects.size);
+            BW_WriteU16(writer, root_objects.size);
             LinkedObjectList_foreach(root_objects, object)
                 _internal_serialize_recursively(writer, NULL, object);
         } else {
-            BW_WriteU32(writer, 1);
+            BW_WriteU16(writer, 1);
             _internal_serialize_recursively(writer, NULL, target);
         }
-        BW_SaveToFile(writer, "Workspace.eobj");
+        BW_SaveToFile(writer, "Workspace.opak");
     }
 #endif

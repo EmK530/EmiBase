@@ -13,8 +13,11 @@
 - Various helper functions for managing audio playback, text rendering, image drawing and fullscreen shading.
 - Nuklear debugging interface to swap scenes, toggle rendering stages and alter objects in real-time.
 
+## Games made with EmiBase
+<a href="https://rcc.trusti.fyi/"><img src="https://github.com/user-attachments/assets/359648c4-5145-4640-8aab-84a9d60a5251" alt="Recur" width="64"></a>
+
 ## How to build
-EmiBase is currently only supported for Windows, however Linux will be included in the future.
+EmiBase is currently only supported for Windows, however more build modes will be included in the future.
 - Download Raylib 6.0 through the itch.io Windows installer: https://raysan5.itch.io/raylib/purchase
 - Download Python and ensure it is in PATH: https://www.python.org/downloads/
 - Add `C:\raylib\w64devkit\bin` to your PATH.

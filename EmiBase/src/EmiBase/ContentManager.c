@@ -4,11 +4,12 @@
 
 #include "EmiBase.h"
 
-#define SPAK_MAGIC "EPAK"
-#define SFCH_MAGIC "EFCH"
+#define SPAK_MAGIC 0x4B415045 // "EPAK"
+#define SFCH_MAGIC 0x48434645 // "EFCH"
 
-static FILE *gPakFile = NULL;
-static LinkedList *gEntries = NULL;
+static FILE* gPakFile = NULL;
+static ContentEntry* gEntries = NULL;
+static uint32_t gEntriesCount = 0;
 
 // These get modified at runtime
 static bool isEncrypted = false;
@@ -20,6 +21,15 @@ static uint32_t xorshift32(uint32_t state)
     state ^= state >> 17;
     state ^= state << 5;
     return state;
+}
+
+uint64_t fnv1a_hash(const char* filePath, size_t pathLen) {
+    uint64_t hash = 0xcbf29ce484222325ULL;
+    for (size_t i = 0; i < pathLen; i++) {
+        hash ^= (unsigned char)filePath[i];
+        hash *= 0x100000001b3ULL;
+    }
+    return hash;
 }
 
 static void crypt_buffer(unsigned char *buffer, size_t size, uint32_t fileOffset)
@@ -40,28 +50,29 @@ static void crypt_buffer(unsigned char *buffer, size_t size, uint32_t fileOffset
 
 static int read(void *buffer, size_t size)
 {
-    long offset = ftell(gPakFile);
     int result = fread(buffer, 1, size, gPakFile);
-    if(isEncrypted) crypt_buffer((unsigned char*)buffer, size, (uint32_t)offset);
+    if(isEncrypted)
+    {
+        long offset = ftell(gPakFile);
+        crypt_buffer((unsigned char*)buffer, size, (uint32_t)offset);
+    }
     return result;
 }
 
 static ContentEntry *find_entry(const char *path)
 {
-    LinkedList_foreach(gEntries, node)
+    if(!path)
+        return NULL;
+    size_t pathLen = strlen(path);
+    uint64_t pathHash = fnv1a_hash(path, pathLen);
+    ContentEntry* entry = gEntries;
+    for(int i = 0; i < gEntriesCount; i++)
     {
-        ContentEntry *entry = node->item;
-        if(strcmp(entry->path, path) == 0)
+        if(pathHash == entry->pathHash)
             return entry;
+        entry++;
     }
     return NULL;
-}
-
-static void free_entry(void *ptr)
-{
-    ContentEntry *entry = ptr;
-    MemFree(entry->path);
-    MemFree(entry);
 }
 
 static uint32_t crc32_table[256];
@@ -111,12 +122,10 @@ int ContentManager_Init(const char *pakPath)
         return 0;
     }
 
-    gEntries = LinkedList_create();
+    uint32_t magic;
+    read(&magic, 4);
 
-    char magic[4];
-    read(magic, 4);
-
-    if(memcmp(magic, SPAK_MAGIC, 4) != 0)
+    if(magic != SPAK_MAGIC)
     {
         eprintf("[ContentManager] Invalid pak header\n");
         WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 1)", MB_TOPMOST | MB_ICONERROR);
@@ -143,15 +152,18 @@ int ContentManager_Init(const char *pakPath)
     isEncrypted = (flags & 1) != 0;
     hasCRC = (flags & 2) != 0;
 
-    uint32_t fileCount;
-    read(&fileCount, 4);
+    read(&gEntriesCount, 4);
 
-    for(uint32_t i = 0; i < fileCount; i++)
+    gEntries = emalloc_strict(sizeof(ContentEntry) * gEntriesCount);
+
+    for(uint32_t i = 0; i < gEntriesCount; i++)
     {
-        char chunkMagic[4];
-        read(chunkMagic, 4);
+        ContentEntry *entry = gEntries + i;
 
-        if(memcmp(chunkMagic, SFCH_MAGIC, 4) != 0)
+        uint32_t chunkMagic;
+        read(&chunkMagic, 4);
+
+        if(chunkMagic != SFCH_MAGIC)
         {
             eprintf("[ContentManager] Invalid chunk header\n");
             WinMessageBox("Fatal error!", "EmiBase failed to launch.\n\nGame content is corrupted. (ERR 2)", MB_TOPMOST | MB_ICONERROR);
@@ -171,7 +183,7 @@ int ContentManager_Init(const char *pakPath)
             read(&storedDataCRC, 4);
         }
 
-        char *path = MemAlloc(pathLength + 1);
+        char *path = emalloc_strict(pathLength + 1);
 
         read(path, pathLength);
 
@@ -191,20 +203,15 @@ int ContentManager_Init(const char *pakPath)
             }
         }
 
-        ContentEntry *entry = MemAlloc(sizeof(ContentEntry));
-
-        entry->path = path;
+        entry->pathHash = fnv1a_hash(path, pathLength);
         entry->dataOffset = (uint32_t)ftell(gPakFile);
         entry->size = fileSize;
-        entry->pathCRC = storedPathCRC;
         entry->dataCRC = storedDataCRC;
 
         fseek(gPakFile, fileSize, SEEK_CUR);
-
-        LinkedList_append(gEntries, entry);
     }
 
-    eprintf("[ContentManager] Loaded %i pak entries\n", gEntries->size);
+    eprintf("[ContentManager] Loaded %i pak entries\n", gEntriesCount);
 
     return 1;
 }
@@ -217,7 +224,7 @@ void ContentManager_Dispose()
         gPakFile = NULL;
     }
     if(gEntries)
-        LinkedList_dispose(&gEntries, free_entry);
+        MemFree(gEntries);
 }
 
 unsigned char *ContentManager_LoadFile(const char *path, size_t *size)
@@ -228,19 +235,7 @@ unsigned char *ContentManager_LoadFile(const char *path, size_t *size)
         eprintf("[ContentManager] Missing pak asset: %s\n", path);
         return NULL;
     }
-    unsigned char *data = MemAlloc(entry->size);
-    if(!data)
-    {
-        eprintf("[ContentManager] Out of memory loading asset: %s\n", path);
-
-        char msg[67];
-        snprintf(msg, 67, "Out of memory, ContentManager failed to allocate %i bytes.", entry->size);
-        WinMessageBox("Fatal error!", msg, MB_TOPMOST | MB_ICONERROR);
-        CloseWindow();
-        WinExitProcess(1);
-        
-        return NULL;
-    }
+    unsigned char *data = emalloc_strict(entry->size + 1);
     fseek(gPakFile, entry->dataOffset, SEEK_SET);
     read(data, entry->size);
     if(hasCRC)
@@ -334,9 +329,6 @@ char *ContentManager_LoadText(const char *path)
     unsigned char *data = ContentManager_LoadFile(path, &size);
     if(!data)
         return NULL;
-    char *text = MemAlloc(size + 1);
-    memcpy(text, data, size);
-    text[size] = '\0';
-    MemFree(data);
-    return text;
+    data[size] = '\0';
+    return data;
 }

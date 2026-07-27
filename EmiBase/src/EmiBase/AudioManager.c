@@ -1,272 +1,389 @@
 #include <string.h>
-#include <stdio.h>
 
-#include "EmiBase.h"
+#include "EmiBase/AudioManager.h"
 
-typedef enum {
-    AUDIO_SOUND,
-    AUDIO_MUSIC
-} AudioType;
-
-struct AudioAsset {
-    char* path;
-
-    Sound sound;
-    Music music;
-
-    int isMusicLoaded;
-    int isSoundLoaded;
-};
-
-typedef struct {
-    AudioAsset* items;
-    int count;
-    int capacity;
-} AudioCache;
-
-typedef struct {
-    AudioAsset* asset;
-    float volume;
-    int active;
-    int loop;
-
-    int playing;        // NEW
-} AudioChannel;
-
-static AudioCache cache = {0};
-static AudioChannel channels[MAX_CHANNELS] = {0};
-
-static AudioAsset* Find(const char* path)
-{
-    for (int i = 0; i < cache.count; i++)
-    {
-        if (strcmp(cache.items[i].path, path) == 0)
-            return &cache.items[i];
-    }
-    return NULL;
-}
-
-
-//------------------------------------------------------------
-// Core API
-//------------------------------------------------------------
+static AudioChannel channels[AUDIO_MAX_CHANNELS];
+static bool initialized = false;
 
 int AudioManager_Init(void)
 {
+    if(initialized)
+        return 1;
     InitAudioDevice();
     if(!IsAudioDeviceReady())
     {
         eprintf("[AudioManager] Failed to init AudioDevice\n");
         return 0;
     }
-
-    for (int i = 0; i < MAX_CHANNELS; i++)
+    memset(channels, 0, sizeof(AudioChannel) * AUDIO_MAX_CHANNELS);
+    for (int i = 0; i < AUDIO_MAX_CHANNELS; i++)
         channels[i].volume = 1.0f;
     eprintf("[AudioManager] Ready!\n");
+    initialized = true;
     return 1;
 }
 
-void AudioManager_Shutdown(void)
+void AudioManager_Update()
 {
-    for (int i = 0; i < cache.count; i++)
+    AudioChannel* channel = channels;
+    for(int i = 0; i < AUDIO_MAX_CHANNELS; i++)
     {
-        if (cache.items[i].isSoundLoaded)
-            UnloadSound(cache.items[i].sound);
-
-        if (cache.items[i].isMusicLoaded)
-            UnloadMusicStream(cache.items[i].music);
-
-        MemFree(cache.items[i].path);
-    }
-
-    MemFree(cache.items);
-    cache = (AudioCache){0};
-
-    CloseAudioDevice();
-}
-
-
-//------------------------------------------------------------
-// Asset loading
-//------------------------------------------------------------
-
-AudioAsset* AudioManager_Get(const char* path)
-{
-    AudioAsset* found = Find(path);
-    if (found)
-        return found;
-
-    if (cache.count >= cache.capacity)
-    {
-        cache.capacity = cache.capacity ? cache.capacity * 2 : 8;
-        cache.items = MemRealloc(cache.items, sizeof(AudioAsset) * cache.capacity);
-    }
-
-    AudioAsset* a = &cache.items[cache.count++];
-    a->path = _strdup(path);
-
-    // Don't load anything yet
-    a->isMusicLoaded = 0;
-    a->isSoundLoaded = 0;
-
-    return a;
-}
-
-
-//------------------------------------------------------------
-// Playback
-//------------------------------------------------------------
-
-void AudioManager_PlayChannel(int channel, const char* finalPath, int loop)
-{
-    if (channel < 0 || channel >= MAX_CHANNELS) return;
-
-    AudioAsset* a = AudioManager_Get(finalPath);
-
-    AudioManager_StopChannel(channel);
-
-    channels[channel].asset = a;
-    channels[channel].active = 1;
-    channels[channel].loop = loop;
-    channels[channel].playing = 1;
-
-    if (loop)
-    {
-        // MUSIC path
-        if (!a->isMusicLoaded)
-        {
-            a->music = ContentManager_LoadMusic(finalPath);
-            a->isMusicLoaded = 1;
-        }
-
-        SetMusicVolume(a->music, channels[channel].volume);
-        PlayMusicStream(a->music);
-    }
-    else
-    {
-        // SOUND path
-        if (!a->isSoundLoaded)
-        {
-            a->sound = ContentManager_LoadSound(finalPath);
-            a->isSoundLoaded = 1;
-        }
-
-        SetSoundVolume(a->sound, channels[channel].volume);
-        PlaySound(a->sound);
-    }
-}
-
-
-//------------------------------------------------------------
-// Control
-//------------------------------------------------------------
-
-void AudioManager_StopChannel(int channel)
-{
-    if (channel < 0 || channel >= MAX_CHANNELS) return;
-
-    if (!channels[channel].active || !channels[channel].asset) return;
-
-    AudioAsset* a = channels[channel].asset;
-
-    if (channels[channel].loop)
-        StopMusicStream(a->music);
-    else
-        StopSound(a->sound);
-
-    channels[channel].active = 0;
-    channels[channel].asset = NULL;
-}
-
-void AudioManager_StopAll(void)
-{
-    for (int i = 0; i < MAX_CHANNELS; i++)
-    {
-        if (!channels[i].active || !channels[i].asset) continue;
-
-        AudioAsset* a = channels[i].asset;
-
-        if (channels[i].loop)
-            StopMusicStream(a->music);
-        else
-            StopSound(a->sound);
-
-        channels[i].active = 0;
-        channels[i].asset = NULL;
-    }
-}
-
-void AudioManager_SetChannelVolume(int channel, float volume)
-{
-    if (channel < 0 || channel >= MAX_CHANNELS) return;
-
-    channels[channel].volume = volume;
-
-    if (!channels[channel].active || !channels[channel].asset) return;
-
-    AudioAsset* a = channels[channel].asset;
-
-    if (channels[channel].loop)
-        SetMusicVolume(a->music, volume);
-    else
-        SetSoundVolume(a->sound, volume);
-}
-
-int AudioManager_IsChannelPlaying(int channel)
-{
-    if (channel < 0 || channel >= MAX_CHANNELS) return 0;
-
-    if (!channels[channel].active || !channels[channel].asset) return 0;
-
-    AudioAsset* a = channels[channel].asset;
-
-    if (channels[channel].loop)
-        return IsMusicStreamPlaying(a->music);
-    else
-        return IsSoundPlaying(a->sound);
-}
-
-
-//------------------------------------------------------------
-// Update (must be called every frame)
-//------------------------------------------------------------
-
-void AudioManager_Update(void)
-{
-    for (int i = 0; i < MAX_CHANNELS; i++)
-    {
-        if (!channels[i].active || !channels[i].asset) continue;
-
-        AudioAsset* a = channels[i].asset;
-
-        if (channels[i].loop)
-        {
-            UpdateMusicStream(a->music);
-
-            // only music exists in loop mode now
-            if (!IsMusicStreamPlaying(a->music))
-                PlayMusicStream(a->music);
-        }
-        else
-        {
-            if (!IsSoundPlaying(a->sound))
-            {
-                channels[i].active = 0;
-                channels[i].playing = 0;
+        if(channel->state == ChannelState_Playing) {
+            if(channel->type == ChannelType_Sound) {
+                Sound* snd = (Sound*)channel->soundObject;
+                if(!IsSoundPlaying(*snd))
+                    channel->state = ChannelState_Stopped;
+            } else {
+                Music* snd = (Music*)channel->soundObject;
+                if(!IsMusicStreamPlaying(*snd)) {
+                    if(channel->looped) {
+                        PlayMusicStream(*snd);
+                    } else {
+                        channel->state = ChannelState_Stopped;
+                        channel->type = ChannelType_Empty;
+                        UnloadMusicStream(*snd);
+                        MemFree(channel->soundObject);
+                        memset(channel, 0, sizeof(AudioChannel));
+                    }
+                } else {
+                    UpdateMusicStream(*snd);
+                }
             }
         }
+        channel++;
     }
 }
 
-
-//------------------------------------------------------------
-// Preload
-//------------------------------------------------------------
-
-void AudioManager_Preload(const char** paths, int count)
+static AudioChannel* AudioManager_GetChannel(uint64_t hash, enum ChannelType desired)
 {
-    for (int i = 0; i < count; i++)
+    int firstFree = -1;
+    int bestReplace = -1;
+    uint32_t oldestWrite = UINT32_MAX;
+
+    for (int i = 0; i < AUDIO_MAX_CHANNELS; i++)
     {
-        AudioManager_Get(paths[i]);
+        AudioChannel* ch = &channels[i];
+        if (ch->type == desired && ch->soundHash == hash && ch->state == ChannelState_Stopped)
+            return ch;
+        if (firstFree == -1 && ch->type == ChannelType_Empty && !ch->managed)
+            firstFree = i;
+        if ((!ch->managed||ch->state==ChannelState_Stopped) && ch->interruptible && (ch->type!=ChannelType_Empty||ch->state==ChannelState_Stopped) && ch->lastWriteId < oldestWrite)
+        {
+            oldestWrite = ch->lastWriteId;
+            bestReplace = i;
+        }
     }
+    if (firstFree != -1)
+        return &channels[firstFree];
+    if (bestReplace != -1)
+        return &channels[bestReplace];
+    return NULL;
+}
+
+void AudioManager_ResumeCh(int channel)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot ResumeCh because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed)
+        return;
+    if(ch->state == ChannelState_Paused) {
+        if(ch->type == ChannelType_Music) {
+            ResumeMusicStream(*(Music*)ch->soundObject);
+        } else {
+            ResumeSound(*(Sound*)ch->soundObject);
+        }
+        ch->state = ChannelState_Playing;
+    }
+}
+
+void AudioManager_PauseCh(int channel)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot PauseCh because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed)
+        return;
+    if(ch->state == ChannelState_Playing) {
+        if(ch->type == ChannelType_Music) {
+            PauseMusicStream(*(Music*)ch->soundObject);
+        } else {
+            PauseSound(*(Sound*)ch->soundObject);
+        }
+        ch->state = ChannelState_Paused;
+    }
+}
+
+void _AudioManager_StopChInner(int channel, bool bypass)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot StopCh because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!bypass && !ch->managed)
+        return;
+    if(ch->state != ChannelState_Stopped) {
+        if(ch->type == ChannelType_Music) {
+            Music* snd = (Music*)ch->soundObject;
+            StopMusicStream(*snd);
+            ch->type = ChannelType_Empty;
+            UnloadMusicStream(*snd);
+            MemFree(ch->soundObject);
+            memset(ch, 0, sizeof(AudioChannel));
+        } else {
+            StopSound(*(Sound*)ch->soundObject);
+        }
+        ch->state = ChannelState_Stopped;
+    }
+}
+
+void AudioManager_StopCh(int channel)
+{
+    _AudioManager_StopChInner(channel, false);
+}
+
+void AudioManager_StopAll()
+{
+    for(int i = 0; i < AUDIO_MAX_CHANNELS; i++)
+    {
+        _AudioManager_StopChInner(i+1, true);
+    }
+}
+
+void AudioManager_SetChVolume(int channel, float volume)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot SetChVolume because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed || ch->type == ChannelType_Empty)
+        return;
+    if(ch->volume == volume)
+        return;
+    if(ch->type == ChannelType_Music) {
+        SetMusicVolume(*(Music*)ch->soundObject, volume);
+    } else {
+        SetSoundVolume(*(Sound*)ch->soundObject, volume);
+    }
+    ch->volume = volume;
+}
+
+void AudioManager_SetChPitch(int channel, float pitch)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot SetChPitch because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed || ch->type == ChannelType_Empty)
+        return;
+    if(ch->type == ChannelType_Music) {
+        SetMusicPitch(*(Music*)ch->soundObject, pitch);
+    } else {
+        SetSoundPitch(*(Sound*)ch->soundObject, pitch);
+    }
+}
+
+void AudioManager_SetChPan(int channel, float pan)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot SetChPan because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed || ch->type == ChannelType_Empty)
+        return;
+    if(ch->type == ChannelType_Music) {
+        SetMusicPan(*(Music*)ch->soundObject, pan);
+    } else {
+        SetSoundPan(*(Sound*)ch->soundObject, pan);
+    }
+}
+
+bool AudioManager_IsChPlaying(int channel)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot SetChPan because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return false;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed || ch->type == ChannelType_Empty)
+        return false;
+    return ch->state == ChannelState_Playing;
+}
+
+void AudioManager_SeekCh(int channel, float position)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot SetChPan because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed || ch->type != ChannelType_Music)
+        return;
+    SeekMusicStream(*(Music*)ch->soundObject, position);
+}
+
+float AudioManager_GetChTimeLength(int channel)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot SetChPan because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return 0.0f;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed || ch->type != ChannelType_Music || ch->state == ChannelState_Stopped)
+        return 0.0f;
+    return GetMusicTimeLength(*(Music*)ch->soundObject);
+}
+
+float AudioManager_GetChTimePlayed(int channel)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot SetChPan because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return 0.0f;
+    }
+    AudioChannel* ch = channels + (channel-1);
+    if(!ch->managed || ch->type != ChannelType_Music || ch->state == ChannelState_Stopped)
+        return 0.0f;
+    return GetMusicTimePlayed(*(Music*)ch->soundObject);
+}
+
+static bool AudioManager_LoadChannel(AudioChannel* ch, enum ChannelType type, uint64_t hash, const char* path, enum AudioFlags flags)
+{
+    if (ch->soundHash == hash)
+        return true;
+    if (ch->state != ChannelState_Stopped)
+    {
+        switch (ch->type)
+        {
+            case ChannelType_Sound:
+                UnloadSound(*(Sound*)ch->soundObject);
+                break;
+            case ChannelType_Music:
+                UnloadMusicStream(*(Music*)ch->soundObject);
+                break;
+        }
+        MemFree(ch->soundObject);
+    }
+    memset(ch, 0, sizeof(*ch));
+    ch->volume = 1.0f;
+    ch->type = type;
+    ch->soundHash = hash;
+    ch->interruptible = !(flags & AudioFlag_Uninterruptible);
+    ch->looped = flags & AudioFlag_Looped;
+    if (type == ChannelType_Sound)
+    {
+        Sound snd = ContentManager_LoadSound(path);
+        if (!IsSoundValid(snd))
+            return false;
+        ch->soundObject = emalloc_strict(sizeof(Sound));
+        *(Sound*)ch->soundObject = snd;
+    } else {
+        Music music = ContentManager_LoadMusic(path);
+        if (!IsMusicValid(music))
+            return false;
+        ch->soundObject = emalloc_strict(sizeof(Music));
+        *(Music*)ch->soundObject = music;
+    }
+    return true;
+}
+
+static int writeId = 0;
+
+void _AudioManager_PlaySoundInner(AudioChannel* ch, const char* path, uint64_t hash, float volume, enum AudioFlags flags, bool managed)
+{
+    if (!AudioManager_LoadChannel(ch, ChannelType_Sound, hash, path, flags))
+        return;
+    Sound* snd = ch->soundObject;
+    if (ch->state != ChannelState_Stopped)
+        StopSound(*snd);
+    if (ch->volume != volume)
+    {
+        SetSoundVolume(*snd, volume);
+        ch->volume = volume;
+    }
+    PlaySound(*snd);
+    ch->state = ChannelState_Playing;
+    ch->managed = managed;
+    ch->lastWriteId = writeId++;
+}
+
+void _AudioManager_PlayMusicInner(AudioChannel* ch, const char* path, uint64_t hash, float volume, enum AudioFlags flags, bool managed)
+{
+    if (!AudioManager_LoadChannel(ch, ChannelType_Music, hash, path, flags))
+        return;
+    Music* snd = ch->soundObject;
+    if (ch->state != ChannelState_Stopped)
+        StopMusicStream(*snd);
+    if (ch->volume != volume)
+    {
+        SetMusicVolume(*snd, volume);
+        ch->volume = volume;
+    }
+    PlayMusicStream(*snd);
+    ch->state = ChannelState_Playing;
+    ch->managed = managed;
+    ch->lastWriteId = writeId++;
+}
+
+void AudioManager_PlaySound(const char* path, float volume, enum AudioFlags flags)
+{
+    if (!path)
+        return;
+    uint64_t hash = fnv1a_hash(path, strlen(path));
+    AudioChannel* ch = AudioManager_GetChannel(hash, ChannelType_Sound);
+    if (!ch) {
+        eprintf("[AudioManager] No free interruptible channels to play Sound: %s\n", path);
+        return;
+    }
+    _AudioManager_PlaySoundInner(ch, path, hash, volume, flags, false);
+}
+
+void AudioManager_PlayMusic(const char* path, float volume, enum AudioFlags flags)
+{
+    if (!path)
+        return;
+    uint64_t hash = fnv1a_hash(path, strlen(path));
+    AudioChannel* ch = AudioManager_GetChannel(hash, ChannelType_Music);
+    if (!ch) {
+        eprintf("[AudioManager] No free interruptible channels to play MusicStream: %s\n", path);
+        return;
+    }
+    _AudioManager_PlayMusicInner(ch, path, hash, volume, flags, false);
+}
+
+void AudioManager_PlaySoundCh(const char* path, int channel, float volume, enum AudioFlags flags)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot PlaySoundCh because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    uint64_t hash = fnv1a_hash(path, strlen(path));
+    AudioChannel* ch = channels + (channel-1);
+    if (ch->state != ChannelState_Stopped && !ch->interruptible) {
+        eprintf("[AudioManager] PlaySoundCh cannot play on busy uninterruptible channel %i\n", channel);
+        return;
+    }
+    _AudioManager_PlaySoundInner(ch, path, hash, volume, flags, true);
+}
+
+void AudioManager_PlayMusicCh(const char* path, int channel, float volume, enum AudioFlags flags)
+{
+    if(channel < 1 || channel > AUDIO_MAX_CHANNELS) {
+        eprintf("[AudioManager] Cannot PlayMusicCh because requested channel %i is outside range available (%i-%i)\n", channel, 1, AUDIO_MAX_CHANNELS);
+        return;
+    }
+    uint64_t hash = fnv1a_hash(path, strlen(path));
+    AudioChannel* ch = channels + (channel-1);
+    if (ch->state != ChannelState_Stopped && !ch->interruptible) {
+        eprintf("[AudioManager] PlayMusicCh cannot play on busy uninterruptible channel %i\n", channel);
+        return;
+    }
+    _AudioManager_PlayMusicInner(ch, path, hash, volume, flags, true);
 }

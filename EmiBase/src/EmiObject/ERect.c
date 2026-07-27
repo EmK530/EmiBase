@@ -30,12 +30,7 @@ extern void _eobject_internal_initialize(EObject* object);
 */
 ERect* ERect_Create(EObject* parent)
 {
-    ERect* rect = (ERect*)MemAlloc(sizeof(ERect));
-    if(!rect)
-    {
-        eprintf("Out of memory allocating ERect\n");
-        return NULL;
-    }
+    ERect* rect = (ERect*)ecalloc_strict(1, sizeof(ERect));
 
     rect->innerType = EObjectType_ERect;
     _eobject_internal_initialize((EObject*)rect);

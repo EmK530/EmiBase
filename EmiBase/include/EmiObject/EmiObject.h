@@ -6,10 +6,27 @@
 #include "EmiObject/EText.h"
 #include "EmiObject/LinkedObjectList.h"
 
-extern LinkedObjectList root_objects;
+#ifndef OPAK_VERSION
+    #define OPAK_VERSION 2
+#endif
+
+#ifndef OPAK_MAGIC
+    #define OPAK_MAGIC 0x4B41504F
+#endif
+#ifndef EOBJ_MAGIC
+    #define EOBJ_MAGIC 0x4A424F45
+#endif
+
 extern bool EmiObject_AutoDraw;
 
-int EmiObject_Init();
+#ifdef EMIBASE_INTERNAL
+    extern LinkedObjectList root_objects;
+    extern bool EImage_IsDefaultValid;
+    extern Texture EImage_DefaultTexture;
+
+    int EmiObject_Init();
+#endif
+
 void EmiObject_Draw(int screenWidth, int screenHeight);
 EObject* EmiObject_FindN(const char* searchPath, size_t len, EObject* target);
 EObject* EmiObject_Find(const char* searchPath, EObject* target);

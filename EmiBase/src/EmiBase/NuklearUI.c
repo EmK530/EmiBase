@@ -23,7 +23,7 @@ bool nk_workLate   = 0;
 bool nk_postProcess = 0;
 bool nk_overlay    = 0;
 
-bool _nk_window_workspace = 0;
+bool _nk_window_workspace = 1;
 
 static struct nk_image nk_icon_erect;
 static struct nk_image nk_icon_eimage;
@@ -151,7 +151,17 @@ static void Workspace_DrawHierarchyNode(EObject* object, int depth)
     struct nk_rect bounds = nk_window_get_content_region(ctx);
     nk_layout_row_push(ctx, bounds.w - (depth * 12) - 18);
 
-    if (nk_parent_picking && object == nk_selected_object)
+    bool is_child_object = false;
+    EObject* target = object->Parent;
+    while(target) {
+        if(target == nk_selected_object) {
+            is_child_object = true;
+            break;
+        }
+        target = target->Parent;
+    }
+
+    if (nk_parent_picking && (object == nk_selected_object || is_child_object))
     {
         nk_label(ctx, object->Name ? object->Name : "(null)", NK_TEXT_LEFT);
     }
@@ -296,10 +306,15 @@ static void Workspace_DrawProperties(EObject* object)
             case EObjectType_EImage:
             {
                 EImage* image = (EImage*)object;
-                nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
-                if (nk_texture_buf_len > 127) nk_texture_buf_len = 127;
-                memcpy(nk_texture_buf, image->_loadedTexturePath, nk_texture_buf_len);
-                nk_texture_buf[nk_texture_buf_len] = '\0';
+                if(image->_loadedTexturePath == NULL) {
+                    nk_texture_buf_len = 0;
+                    nk_texture_buf[0] = '\0';
+                } else {
+                    nk_texture_buf_len = (int)strlen(image->_loadedTexturePath);
+                    if (nk_texture_buf_len > 127) nk_texture_buf_len = 127;
+                    memcpy(nk_texture_buf, image->_loadedTexturePath, nk_texture_buf_len);
+                    nk_texture_buf[nk_texture_buf_len] = '\0';
+                }
                 break;
             }
             case EObjectType_EText:
@@ -338,10 +353,10 @@ static void Workspace_DrawProperties(EObject* object)
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Size", NK_TEXT_LEFT);
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "X.Scale",  0.0f, &object->Size.X.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_float(ctx, "X.Scale",  -1.0f, &object->Size.X.Scale,  FLT_MAX, 0.01f, 0.005f);
     nk_property_int  (ctx, "X.Offset", 0,    (int*)&object->Size.X.Offset, INT_MAX, 1, 1);
     nk_layout_row_dynamic(ctx, 22, 2);
-    nk_property_float(ctx, "Y.Scale",  0.0f, &object->Size.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
+    nk_property_float(ctx, "Y.Scale",  -1.0f, &object->Size.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
     nk_property_int  (ctx, "Y.Offset", 0,    (int*)&object->Size.Y.Offset, INT_MAX, 1, 1);
 
     nk_layout_row_dynamic(ctx, 18, 1);
@@ -349,6 +364,8 @@ static void Workspace_DrawProperties(EObject* object)
     nk_layout_row_dynamic(ctx, 22, 1);
     nk_property_float(ctx, "°", -360.0f, &object->Rotation, 720.0f, 0.5f, 0.5f);
     object->Rotation = fmodf(object->Rotation, 360.0f);
+    if(object->Rotation < 0.0f)
+        object->Rotation += 360.0f;
 
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Anchor", NK_TEXT_LEFT);
@@ -422,7 +439,7 @@ static void Workspace_DrawProperties(EObject* object)
             nk_layout_row_dynamic(ctx, 18, 1);
             nk_label(ctx, "Texture", NK_TEXT_LEFT);
             nk_layout_row_dynamic(ctx, 22, 2);
-            nk_label(ctx, image->_loadedTexturePath ? image->_loadedTexturePath : "(unknown)", NK_TEXT_LEFT);
+            nk_label(ctx, image->_loadedTexturePath ? image->_loadedTexturePath : "(none)", NK_TEXT_LEFT);
             if (nk_button_label(ctx, "Change"))
                 nk_texture_editing = true;
 
@@ -570,8 +587,10 @@ static void Workspace_DrawWorkspace()
             if (nk_parent_picking && nk_input_is_key_pressed(&ctx->input, NK_KEY_TEXT_RESET_MODE))
                 nk_parent_picking = false;
 
+            ctx->style.text.padding    = nk_vec2(2, 0);
             LinkedObjectList_foreach(root_objects, object)
                 Workspace_DrawHierarchyNode(object, 0);
+            ctx->style.text.padding    = nk_vec2(0, 0);
 
             struct nk_rect hier_bounds = nk_window_get_bounds(ctx);
             if (nk_contextual_begin(ctx, 0, nk_vec2(120, 150), hier_bounds))
@@ -747,7 +766,7 @@ void NuklearUI_Draw()
         }
 
         nk_layout_row_push(ctx, w - 185);
-        nk_label(ctx, "EmiBase " EMIBASE_VER " (" GIT_HASH GIT_DIRTY ") | " PROJECT_NAME " " PROJECT_VER, NK_TEXT_RIGHT);
+        nk_label(ctx, "EmiBase " EMIBASE_VER GIT_BRANCH " (" GIT_HASH GIT_DIRTY ") | " PROJECT_NAME " " PROJECT_VER, NK_TEXT_RIGHT);
         nk_layout_row_end(ctx);
     }
     nk_end(ctx);

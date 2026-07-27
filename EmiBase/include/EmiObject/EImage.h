@@ -7,6 +7,10 @@
     #include "Libraries/BufferWriter.h"
 #endif
 
+#ifndef EIMAGE_VERSION
+    #define EIMAGE_VERSION 1
+#endif
+
 typedef struct EImage EImage;
 
 #ifdef EMIBASE_INTERNAL
@@ -17,7 +21,7 @@ typedef struct EImage EImage;
         char* _loadedTexturePath;
     #endif
         Texture2D _loadedTexture; // Internal stored texture
-        bool isTextureValid;
+        uint8_t textureState;
 
         Color BackgroundColor; // Background color
         Color ImageColor; // Image color tint
@@ -27,9 +31,9 @@ typedef struct EImage EImage;
     {
         EOBJECT_BASE_TYPES
     #ifndef RELEASE
-        uint8_t _reservedi[sizeof(Texture2D) + sizeof(bool) + sizeof(char*)];
+        uint8_t _reservedi[sizeof(Texture2D) + sizeof(uint8_t) + sizeof(char*)];
     #else
-        uint8_t _reservedi[sizeof(Texture2D) + sizeof(bool)];
+        uint8_t _reservedi[sizeof(Texture2D) + sizeof(uint8_t)];
     #endif
 
         Color BackgroundColor; // Background color

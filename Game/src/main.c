@@ -7,7 +7,7 @@ extern void Register_Blank();
 // This is ran before EmiBase initialization, here you can prepare a fixed resolution you want EmiBase to render at.
 int Game_PreInit()
 {
-
+    //EmiBase_SetRenderResolution(800, 450);
 }
 
 // This is ran during EmiBase initialization, common practice is to submit defined scenes here.
