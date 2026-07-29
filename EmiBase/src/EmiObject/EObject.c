@@ -63,7 +63,7 @@ void EObject_SetName(void* object, const char* name)
         ctx->Name = NULL;
         return;
     }
-    char* newname = emalloc_strict(len + 1);
+    char* newname = ecalloc_strict(1, len + 1);
     if(!newname)
         return;
     strncpy(newname, name, len);
