@@ -102,6 +102,16 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
     out->Position.x = parent->Position.x + (localX * c - localY * s);
     out->Position.y = parent->Position.y + (localX * s + localY * c);
 
+    if(ctx->AlignPosition) {
+        out->Position.x = roundf(out->Position.x);
+        out->Position.y = roundf(out->Position.y);
+    }
+
+    if(ctx->AlignSize) {
+        out->Size.x = roundf(out->Size.x);
+        out->Size.y = roundf(out->Size.y);
+    }
+
     out->Rotation = fmodf(parent->Rotation + ctx->Rotation, 360.0f);
     if(out->Rotation < 0.0f)
         out->Rotation += 360.0f;
@@ -124,7 +134,11 @@ void _eobject_internal_render(EObject* ctx, ETransform* parent, ETransform* out)
         EUDim2_serialize(writer, self->Size);
         BW_WriteFloat(writer, self->Rotation);
         Vector2_serialize(writer, self->Anchor);
-        BW_WriteU8(writer, self->Visible ? 1 : 0);
+        uint8_t flag = 0;
+        if(self->Visible) flag += 1;
+        if(self->AlignPosition) flag += 2;
+        if(self->AlignSize) flag += 4;
+        BW_WriteU8(writer, flag);
         BW_WriteU8(writer, self->ZIndex);
     }
 #endif
@@ -145,6 +159,8 @@ void _eobject_internal_initialize(EObject* object)
     object->_ParentInternalTracking = NULL;
     object->Children = LinkedObjectList_create();
     object->Visible = true;
+    object->AlignPosition = false;
+    object->AlignSize = false;
     object->ZIndex = 0;
 
 #ifndef RELEASE

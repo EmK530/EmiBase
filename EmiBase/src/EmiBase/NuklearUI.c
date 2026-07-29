@@ -351,6 +351,11 @@ static void Workspace_DrawProperties(EObject* object)
     nk_property_int  (ctx, "#Y.Offset", INT_MIN,  (int*)&object->Position.Y.Offset, INT_MAX, 1, 1);
 
     nk_layout_row_dynamic(ctx, 18, 1);
+    nk_bool pixelPerfect1 = !object->AlignPosition;
+    nk_checkbox_label(ctx, "Pixel-perfect", &pixelPerfect1);
+    object->AlignPosition = !pixelPerfect1;
+
+    nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Size", NK_TEXT_LEFT);
     nk_layout_row_dynamic(ctx, 22, 2);
     nk_property_float(ctx, "X.Scale",  -1.0f, &object->Size.X.Scale,  FLT_MAX, 0.01f, 0.005f);
@@ -358,6 +363,11 @@ static void Workspace_DrawProperties(EObject* object)
     nk_layout_row_dynamic(ctx, 22, 2);
     nk_property_float(ctx, "Y.Scale",  -1.0f, &object->Size.Y.Scale,  FLT_MAX, 0.01f, 0.005f);
     nk_property_int  (ctx, "Y.Offset", 0,    (int*)&object->Size.Y.Offset, INT_MAX, 1, 1);
+
+    nk_layout_row_dynamic(ctx, 18, 1);
+    nk_bool pixelPerfect2 = !object->AlignSize;
+    nk_checkbox_label(ctx, "Pixel-perfect", &pixelPerfect2);
+    object->AlignSize = !pixelPerfect2;
 
     nk_layout_row_dynamic(ctx, 18, 1);
     nk_label(ctx, "Rotation", NK_TEXT_LEFT);

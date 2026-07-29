@@ -204,7 +204,14 @@ void _internal_deserialize_recursively(BufferReader* reader, EObject* parent)
         obj->Size = EUDim2_deserialize(reader);
         obj->Rotation = BR_ReadFloat(reader);
         obj->Anchor = Vector2_deserialize(reader);
-        obj->Visible = BR_ReadU8(reader) == 1;
+        uint8_t flag = BR_ReadU8(reader);
+        if(EObjectVersion == 2) {
+            obj->Visible = (flag & 1) != 0;
+            obj->AlignPosition = (flag & 2) != 0;
+            obj->AlignSize = (flag & 4) != 0;
+        } else {
+            obj->Visible = flag == 1;
+        }
         obj->ZIndex = BR_ReadU8(reader);
         _internal_deserialize_recursively(reader, obj);
     }

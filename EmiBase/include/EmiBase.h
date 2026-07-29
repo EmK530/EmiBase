@@ -119,7 +119,7 @@ int EmiBase_GetScreenHeight();
 void EmiBase_SetRenderResolution(int width, int height);
 void EmiBase_UnsetRenderResolution();
 
-#define EMIBASE_VER "v1.1.0"
+#define EMIBASE_VER "v1.1.1"
 
 #ifndef GIT_HASH
     #define GIT_HASH "unknown"

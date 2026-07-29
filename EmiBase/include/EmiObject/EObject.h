@@ -11,7 +11,7 @@
 #endif
 
 #ifndef EOBJECT_VERSION
-    #define EOBJECT_VERSION 1
+    #define EOBJECT_VERSION 2
 #endif
 
 #ifndef M_PI
@@ -68,6 +68,8 @@ typedef struct EObject EObject;
         LinkedObjectList Children; \
         float Rotation; \
         bool Visible; \
+        bool AlignPosition; \
+        bool AlignSize; \
         uint8_t ZIndex; \
         enum EObjectType innerType;
 #else
@@ -82,6 +84,8 @@ typedef struct EObject EObject;
         LinkedObjectList Children; \
         float Rotation; \
         bool Visible; \
+        bool AlignPosition; \
+        bool AlignSize; \
         uint8_t ZIndex; \
         enum EObjectType innerType;
 #endif
