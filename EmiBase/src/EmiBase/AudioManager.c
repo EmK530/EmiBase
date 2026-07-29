@@ -326,6 +326,7 @@ void _AudioManager_PlayMusicInner(AudioChannel* ch, const char* path, uint64_t h
         SetMusicVolume(*snd, volume);
         ch->volume = volume;
     }
+    snd->looping = ch->looped;
     PlayMusicStream(*snd);
     ch->state = ChannelState_Playing;
     ch->managed = managed;
